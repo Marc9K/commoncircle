@@ -1,9 +1,7 @@
 "use client";
-import { Burger, Container, Drawer, Flex, Group, Title } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Container, Flex, Group, Title } from "@mantine/core";
 import classes from "./Header.module.css";
-import { FcCalendar, FcSearch } from "react-icons/fc";
-import { usePathname, useRouter } from "next/navigation";
+import { FcCalendar } from "react-icons/fc";
 import AccountButton from "./AccountButton";
 import MainTabs from "./MainTabs";
 import React from "react";

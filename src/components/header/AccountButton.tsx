@@ -3,7 +3,9 @@ import cx from "clsx";
 
 import classes from "./Header.module.css";
 
-function Account({ user }) {
+type User = { name: string };
+
+function Account({ user }: { user: User }) {
   return (
     <UnstyledButton
       hidden={user == undefined}
@@ -25,7 +27,6 @@ function LoginButton() {
   return <Button variant="filled">Login</Button>;
 }
 
-export default function AccountButton() {
-  const user = { name: "John" };
+export default function AccountButton({ user }: { user?: User }) {
   return user ? Account({ user }) : LoginButton();
 }
