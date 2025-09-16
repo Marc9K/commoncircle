@@ -2,12 +2,14 @@
 // All packages except `@mantine/hooks` require styles imports
 import "@mantine/core/styles.css";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { addons } from "@storybook/preview-api";
 import { DARK_MODE_EVENT_NAME } from "storybook-dark-mode";
 import { MantineProvider, useMantineColorScheme } from "@mantine/core";
 import { theme } from "../src/theme";
 import React from "react";
+import Router from "next/router";
+import { RouterContext } from "next/dist/shared/lib/router-context.shared-runtime";
 
 const channel = addons.getChannel();
 
@@ -31,4 +33,22 @@ export const decorators = [
   (renderStory: () => React.ReactNode) => (
     <MantineProvider theme={theme}>{renderStory()}</MantineProvider>
   ),
+  (renderStory: () => React.ReactNode) => {
+    const [pathname, setPathname] = useState("/");
+
+    const mockRouter = {
+      pathname,
+      prefetch: () => {},
+      push: async (newPathname: string) => {
+        setPathname(newPathname);
+      },
+    };
+
+    Router.router = mockRouter;
+    return (
+      <RouterContext.Provider value={mockRouter}>
+        {renderStory()}
+      </RouterContext.Provider>
+    );
+  },
 ];

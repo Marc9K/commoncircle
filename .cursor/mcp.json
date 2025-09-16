@@ -3,6 +3,18 @@
     "mantine": {
       "command": "npx",
       "args": ["-y", "@hakxel/mantine-ui-server"]
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase",
+        "--read-only",
+        "--project-ref=xqzefihbemmmhikkpfxj"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_fafd4e0235b42ee8a3c473179ed4a31f18a1f8fc"
+      }
     }
   }
 }
