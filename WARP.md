@@ -89,3 +89,11 @@ src/
 - PWA support included via `next-pwa` package
 - TypeScript strict mode enabled with Next.js optimizations
 - Storybook configured for Next.js with static directory pointing to `/public`
+
+### General rules/info
+- The project is at the design mockup stage
+- Create Stories for each element/page you create
+- Make stories for desktop and mobile
+- Keep all sample data in stories files
+- Only use code styling, no pure CSS
+- Don't try to implement navigation etc yet, nor do you have to state where it should go. Just focus on simple design
