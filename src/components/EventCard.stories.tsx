@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { EventCard, EventCardData } from "./EventCard";
 import { decorators } from "../../.storybook/previews";
 
@@ -23,7 +23,7 @@ const sampleEventSameDay: EventCardData = {
     Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000
   ).toISOString(), // +3 hours
   location: "Manchester Tech Hub",
-  imageSrc: "/people.jpg",
+  imageSrc: "./people.jpg",
   tags: ["React", "JavaScript", "Web Development", "Frontend", "Workshop"],
   price: 25,
 };
@@ -34,7 +34,7 @@ const sampleEventMultiDay: EventCardData = {
   startDateTime: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
   endDateTime: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000).toISOString(), // +2 days
   location: "London Convention Center",
-  imageSrc: "/people.jpg",
+  imageSrc: "./people.jpg",
   tags: ["Conference", "AI", "Blockchain", "Cloud Computing"],
   price: 199,
 };
@@ -47,7 +47,7 @@ const freeEvent: EventCardData = {
     Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000
   ).toISOString(), // +2 hours
   location: "Local Coffee Shop",
-  imageSrc: "/people.jpg",
+  imageSrc: "./people.jpg",
   tags: ["Networking", "Community"],
   price: undefined, // Free event
 };
@@ -60,7 +60,7 @@ const longTitleEvent: EventCardData = {
     Date.now() + 21 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000
   ).toISOString(),
   location: "University of Manchester",
-  imageSrc: "/people.jpg",
+  imageSrc: "./people.jpg",
   tags: [
     "Machine Learning",
     "Data Science",

@@ -1,0 +1,96 @@
+import {
+  Stack,
+  Tabs,
+  SimpleGrid,
+  Button,
+  Group,
+  Title,
+  Box,
+} from "@mantine/core";
+import { CommunityCard } from "./CommunityCard";
+import { EmptyState } from "./EmptyState";
+
+export interface Community {
+  id: string;
+  name: string;
+  memberCount: number;
+  tags: string[];
+  imageSrc: string;
+  pastEvents: number;
+  futureEvents: number;
+  role?: "member" | "admin" | "owner";
+}
+
+export interface AccountCommunitiesProps {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  memberCommunities?: Community[];
+  runningCommunities?: Community[];
+}
+
+
+function CommunityGrid({ communities }: { communities: Community[] }) {
+  return (
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+      {communities.map((community) => (
+        <Box key={community.id}>
+          <CommunityCard {...community} />
+        </Box>
+      ))}
+    </SimpleGrid>
+  );
+}
+
+export function AccountCommunities({
+  memberCommunities = [],
+  runningCommunities = [],
+}: AccountCommunitiesProps) {
+  const handleCreateNewCommunity = () => {};
+
+  return (
+    <Stack gap="lg">
+      <Tabs defaultValue="member" variant="outline">
+        <Tabs.List>
+          <Tabs.Tab value="member">Membership</Tabs.Tab>
+          <Tabs.Tab value="running">Leadership</Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="member" pt="md">
+          {memberCommunities.length === 0 ? (
+            <EmptyState
+              title="You haven't joined any communities yet"
+              description="Join communities to discover events and connect with others who share your interests"
+            />
+          ) : (
+            <CommunityGrid communities={memberCommunities} />
+          )}
+        </Tabs.Panel>
+
+        <Tabs.Panel value="running" pt="md">
+          <Stack gap="md">
+            <Group justify="space-between" align="center">
+              <Title order={4}>Managed Communities</Title>
+              <Button onClick={handleCreateNewCommunity}>
+                Start New Community
+              </Button>
+            </Group>
+
+            {runningCommunities.length === 0 ? (
+              <EmptyState
+                title="You're not running any communities yet"
+                description="Start building your community today and connect with like-minded people"
+                actionLabel="Start New Community"
+                onAction={handleCreateNewCommunity}
+              />
+            ) : (
+              <CommunityGrid communities={runningCommunities} />
+            )}
+          </Stack>
+        </Tabs.Panel>
+      </Tabs>
+    </Stack>
+  );
+}

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { EventDetail, EventDetailData } from "./EventDetail";
 import { decorators } from "../../.storybook/previews";
 
@@ -24,7 +24,7 @@ const sampleEvents: Record<string, EventDetailData> = {
       Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000
     ).toISOString(), // +3 hours
     location: "Manchester Tech Hub, 123 Innovation Street, Manchester M1 1AA",
-    imageSrc: "/people.jpg",
+    imageSrc: "./people.jpg",
     tags: ["React", "JavaScript", "Web Development", "Frontend", "Workshop"],
     price: 25,
     description: `Join us for an intensive React workshop where you'll learn to build modern web applications from scratch.
@@ -64,7 +64,7 @@ Please bring your laptop with Node.js installed. We'll provide all the starter c
     endDateTime: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000).toISOString(), // +2 days
     location:
       "London Convention Center, Excel London, Royal Victoria Dock, London E16 1XL",
-    imageSrc: "/people.jpg",
+    imageSrc: "./people.jpg",
     tags: ["Conference", "AI", "Blockchain", "Cloud Computing", "Keynote"],
     price: 199,
     description: `The premier technology conference bringing together industry leaders, innovators, and developers from around the world.
@@ -109,7 +109,7 @@ Includes all sessions, workshops, meals, and networking events. Conference swag 
       Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000
     ).toISOString(), // +2 hours
     location: "The Coffee Collective, 45 High Street, Birmingham B1 2AB",
-    imageSrc: "/people.jpg",
+    imageSrc: "./people.jpg",
     tags: ["Networking", "Community", "Informal", "Coffee"],
     price: undefined, // Free event
     description: `A relaxed networking evening for local developers, designers, and tech enthusiasts.
@@ -146,7 +146,7 @@ const baseEvent: EventDetailData = {
     Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000
   ).toISOString(),
   location: "Manchester Tech Hub, 123 Innovation Street, Manchester M1 1AA",
-  imageSrc: "/people.jpg",
+  imageSrc: "./people.jpg",
   tags: ["React", "JavaScript", "Web Development", "Frontend", "Workshop"],
   price: 25,
   description: `Join us for an intensive React workshop where you'll learn to build modern web applications from scratch.
@@ -211,7 +211,23 @@ export const AlreadyRegistered: Story = {
   args: {
     event: {
       ...baseEvent,
+      name: "Photography Workshop - Confirmed Attendance",
       isRegistered: true,
+      tags: ["Photography", "Workshop", "Creative", "Beginner-Friendly"],
+      description: `Join us for a hands-on photography workshop perfect for beginners and enthusiasts alike.
+
+You are confirmed to attend this event! Don't forget to add it to your calendar so you don't miss it.
+
+What you'll learn:
+• Camera basics and settings
+• Composition techniques
+• Lighting fundamentals
+• Post-processing introduction
+• Portfolio building tips
+
+Please bring your camera (smartphone cameras are welcome too!) and dress comfortably for outdoor shooting.
+
+Lunch and refreshments will be provided.`,
     },
   },
 };
@@ -389,6 +405,15 @@ export const FreeEventMobile: Story = {
 
 export const MultiDayConferenceMobile: Story = {
   ...MultiDayConference,
+  globals: {
+    viewport: {
+      value: "mobile1",
+    },
+  },
+};
+
+export const AlreadyRegisteredMobile: Story = {
+  ...AlreadyRegistered,
   globals: {
     viewport: {
       value: "mobile1",

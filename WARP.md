@@ -97,3 +97,4 @@ src/
 - Keep all sample data in stories files
 - Only use code styling, no pure CSS
 - Don't try to implement navigation etc yet, nor do you have to state where it should go. Just focus on simple design
+- Stories require decorators from .storybook/previews file

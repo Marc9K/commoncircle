@@ -226,6 +226,8 @@ function RegistrationButton({
     ? new Date(event.registrationDeadline) < new Date()
     : false;
 
+  const handleAddToCalendar = () => {};
+
   if (isPastEvent) {
     return (
       <Button disabled variant="light">
@@ -244,9 +246,19 @@ function RegistrationButton({
 
   if (isRegistered) {
     return (
-      <Button variant="light" color="red" onClick={onUnregister}>
-        Unregister
-      </Button>
+      <Stack gap="sm">
+        <Button variant="light" color="red" onClick={onUnregister}>
+          Unregister
+        </Button>
+        <Button
+          variant="outline"
+          color="blue"
+          onClick={handleAddToCalendar}
+          leftSection="📆"
+        >
+          Add to Google Calendar
+        </Button>
+      </Stack>
     );
   }
 
@@ -288,8 +300,6 @@ function EventOrganizer({ event }: { event: EventDetailData }) {
               variant="subtle"
               component="a"
               href={event.organizer.website}
-              target="_blank"
-              rel="noopener noreferrer"
             >
               Visit website
             </Button>
