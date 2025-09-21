@@ -1,0 +1,8 @@
+---
+globs: *.stories.tsx
+alwaysApply: false
+---
+
+- when creating a Storybook meta.decorators must be set to the decorators from .sorybook/previews.tsx
+- always create versions for both mobile and desktop by setting globals: {viewport: { value: "mobile1" }}
+- add sample data in stories

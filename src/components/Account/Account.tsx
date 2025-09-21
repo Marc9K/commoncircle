@@ -1,9 +1,12 @@
 "use client";
 
 import { Container, Tabs, Title, Stack } from "@mantine/core";
-import { AccountSettings } from "./AccountSettings";
-import { AccountCommunities, Community } from "./AccountCommunities";
-import { AccountEvents, UserEvent } from "./AccountEvents";
+import { AccountSettings } from "../AccountSettings/AccountSettings";
+import {
+  AccountCommunities,
+  Community,
+} from "../AccountCommunities/AccountCommunities";
+import { AccountEvents, UserEvent } from "../AccountEvents/AccountEvents";
 
 export interface AccountProps {
   user: {

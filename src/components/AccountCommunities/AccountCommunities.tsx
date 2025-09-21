@@ -7,8 +7,8 @@ import {
   Title,
   Box,
 } from "@mantine/core";
-import { CommunityCard } from "./CommunityCard";
-import { EmptyState } from "./EmptyState";
+import { CommunityCard } from "../CommunityCard/CommunityCard";
+import { EmptyState } from "../EmptyState/EmptyState";
 
 export interface Community {
   id: string;
@@ -30,7 +30,6 @@ export interface AccountCommunitiesProps {
   memberCommunities?: Community[];
   runningCommunities?: Community[];
 }
-
 
 function CommunityGrid({ communities }: { communities: Community[] }) {
   return (

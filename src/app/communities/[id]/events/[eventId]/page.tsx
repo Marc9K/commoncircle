@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/components/header/Header";
-import { EventDetail } from "@/components/EventDetail";
+import { EventDetail } from "@/components/EventDetail/EventDetail";
 import { AppShell } from "@mantine/core";
 import { notFound, useParams } from "next/navigation";
 

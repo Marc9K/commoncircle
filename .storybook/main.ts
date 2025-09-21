@@ -8,5 +8,14 @@ const config: StorybookConfig = {
     options: {},
   },
   staticDirs: ["../public"],
+  webpackFinal: async (config) => {
+    // Mock next/navigation for Storybook
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "next/navigation": require.resolve("./mocks/next-navigation.ts"),
+    };
+    return config;
+  },
 };
 export default config;

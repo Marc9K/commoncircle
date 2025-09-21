@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
-import { decorators } from "../../.storybook/previews";
+import { decorators } from "../../../.storybook/previews";
 import { CommunitiesGrid } from "./CommunitiesGrid";
 
 const sampleCommunities = [

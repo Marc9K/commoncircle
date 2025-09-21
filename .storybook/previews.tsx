@@ -8,7 +8,7 @@ import { DARK_MODE_EVENT_NAME } from "storybook-dark-mode";
 import { MantineProvider, useMantineColorScheme } from "@mantine/core";
 import { theme } from "../src/theme";
 import React from "react";
-import Router from "next/router";
+import { NextRouter } from "next/router";
 import { RouterContext } from "next/dist/shared/lib/router-context.shared-runtime";
 
 const channel = addons.getChannel();
@@ -35,16 +35,38 @@ export const decorators = [
   ),
   (renderStory: () => React.ReactNode) => {
     const [pathname, setPathname] = useState("/");
+    const [query, setQuery] = useState({});
 
-    const mockRouter = {
+    const mockRouter: NextRouter = {
       pathname,
-      prefetch: () => {},
-      push: async (newPathname: string) => {
-        setPathname(newPathname);
+      query,
+      asPath: pathname,
+      basePath: "",
+      route: pathname,
+      isReady: true,
+      isPreview: false,
+      isLocaleDomain: false,
+      isFallback: false,
+      events: {
+        on: () => {},
+        off: () => {},
+        emit: () => {},
       },
+      push: async (url: string) => {
+        setPathname(url);
+        return true;
+      },
+      replace: async (url: string) => {
+        setPathname(url);
+        return true;
+      },
+      reload: () => {},
+      back: () => {},
+      prefetch: () => Promise.resolve(),
+      beforePopState: () => {},
+      forward: () => {},
     };
 
-    Router.router = mockRouter;
     return (
       <RouterContext.Provider value={mockRouter}>
         {renderStory()}

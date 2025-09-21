@@ -5,7 +5,7 @@ import { FcCalendar } from "react-icons/fc";
 import AccountButton from "./AccountButton";
 import MainTabs from "./MainTabs";
 import React from "react";
-import Variable from "../Variable";
+import Variable from "../Variable/Variable";
 
 export function Header() {
   return (

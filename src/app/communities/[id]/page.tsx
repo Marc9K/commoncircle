@@ -1,10 +1,9 @@
 "use client";
 
 import { Header } from "@/components/header/Header";
-import { EventCard, EventCardData } from "@/components/EventCard";
+import { EventCard, EventCardData } from "@/components/EventCard/EventCard";
 import {
   AppShell,
-  Container,
   Stack,
   Group,
   Title,
@@ -16,8 +15,8 @@ import {
   Badge,
 } from "@mantine/core";
 import { useState } from "react";
-import { notFound, useParams } from "next/navigation";
-import Variable from "@/components/Variable";
+import { notFound, useParams, useRouter } from "next/navigation";
+import Variable from "@/components/Variable/Variable";
 
 export interface EventItem extends EventCardData {}
 
@@ -46,6 +45,12 @@ export interface CommunityDetailData {
   type: "public" | "private";
   pastEvents: EventItem[];
   futureEvents: EventItem[];
+  currentUserRole?:
+    | "owner"
+    | "manager"
+    | "event_creator"
+    | "door_person"
+    | null;
 }
 function CommunityImage({ community }: { community: CommunityDetailData }) {
   return (
@@ -117,9 +122,22 @@ function JoinButton({
   onJoinRequest: () => void;
   onLeave: () => void;
 }) {
+  const isManager =
+    community.currentUserRole === "owner" ||
+    community.currentUserRole === "manager";
+
   return (
     <Group>
-      {isMember ? (
+      {isManager ? (
+        <Button
+          variant="filled"
+          onClick={() =>
+            (window.location.href = `/communities/${community.id}/manage`)
+          }
+        >
+          Manage Community
+        </Button>
+      ) : isMember ? (
         <Button variant="light" color="red" onClick={onLeave}>
           Leave community
         </Button>
@@ -242,6 +260,7 @@ export function CommunityDetail({
 
 export default function CommunityDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const id = params?.id;
   if (!id) return notFound();
 

@@ -3,14 +3,13 @@ import {
   Group,
   Tabs,
   TextInput,
-  Text,
   VisuallyHidden,
   Stack,
 } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { FcSearch } from "react-icons/fc";
 import classes from "./Header.module.css";
-import Variable from "../Variable";
+import Variable from "../Variable/Variable";
 
 const tabs = [
   { value: "/", label: "Home" },
@@ -75,7 +74,7 @@ function FullTabs() {
   );
 }
 
-export default function MainTabs({ compact = false }: { compact?: boolean }) {
+export default function MainTabs() {
   return (
     <Container size="md">
       <Variable at="xs">

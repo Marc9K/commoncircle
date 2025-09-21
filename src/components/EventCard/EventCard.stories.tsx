@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { EventCard, EventCardData } from "./EventCard";
-import { decorators } from "../../.storybook/previews";
+import { decorators } from "../../../.storybook/previews";
 
 const meta = {
   title: "Components/EventCard",

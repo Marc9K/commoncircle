@@ -1,0 +1,15 @@
+---
+alwaysApply: false
+---
+
+- we're working on the UI mock so do not implement functionality yet
+- for each view/components create a Storybook
+- do NOT add sample/mock data to the views themselves, have it passed down to them as args
+- absolutely NO mock data outside of storybook files
+- use my custom <Variable> and <Visible> when adjusting UI do screen size
+  -- when using those if there is a need to rearrenge components - declare meaningful chunks into functions outside the main for easier rearrenge
+- if creating info cards - put them as a separate component
+- do NOT try to simulate API call or any functionality; only navigation to other pages or variable change
+- do NOT add comments to announce sections
+- keep all the data in separate files
+- use Flat Color Icons

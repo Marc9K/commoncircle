@@ -1,13 +1,6 @@
-import {
-  Stack,
-  Tabs,
-  SimpleGrid,
-  Box,
-  Badge,
-  Group,
-} from "@mantine/core";
-import { EventCard, EventCardData } from "./EventCard";
-import { EmptyState } from "./EmptyState";
+import { Stack, Tabs, SimpleGrid, Box, Badge, Group } from "@mantine/core";
+import { EventCard, EventCardData } from "../EventCard/EventCard";
+import { EmptyState } from "../EmptyState/EmptyState";
 
 export interface UserEvent extends EventCardData {
   registrationDate: string;
@@ -24,7 +17,6 @@ export interface AccountEventsProps {
   pastEvents?: UserEvent[];
   futureEvents?: UserEvent[];
 }
-
 
 function UserEventCard({ event }: { event: UserEvent }) {
   const getStatusColor = (status: UserEvent["registrationStatus"]) => {
@@ -56,16 +48,16 @@ function UserEventCard({ event }: { event: UserEvent }) {
   return (
     <Box pos="relative">
       <EventCard event={event} />
-      <Group 
-        gap="xs" 
-        style={{ 
-          position: "absolute", 
-          top: 8, 
-          right: 8, 
-          zIndex: 1 
+      <Group
+        gap="xs"
+        style={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          zIndex: 1,
         }}
       >
-        <Badge 
+        <Badge
           color={getStatusColor(event.registrationStatus)}
           variant="filled"
           size="sm"
@@ -81,7 +73,7 @@ function UserEventCard({ event }: { event: UserEvent }) {
           position: "absolute",
           bottom: 8,
           left: 8,
-          zIndex: 1
+          zIndex: 1,
         }}
       >
         {event.communityName}
@@ -92,10 +84,7 @@ function UserEventCard({ event }: { event: UserEvent }) {
 
 function EventsGrid({ events }: { events: UserEvent[] }) {
   return (
-    <SimpleGrid
-      cols={{ base: 1, sm: 2, lg: 3 }}
-      spacing="lg"
-    >
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
       {events.map((event) => (
         <UserEventCard key={event.id} event={event} />
       ))}
@@ -111,7 +100,7 @@ export function AccountEvents({
   const confirmedPastEvents = pastEvents.filter(
     (event) => event.registrationStatus === "confirmed"
   );
-  
+
   const activeFutureEvents = futureEvents.filter(
     (event) => event.registrationStatus !== "cancelled"
   );

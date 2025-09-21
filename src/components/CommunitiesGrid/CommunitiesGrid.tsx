@@ -1,5 +1,5 @@
-import { Grid, Title, Stack, Group, Button } from "@mantine/core";
-import { CommunityCard } from "./CommunityCard";
+import { Grid, Stack } from "@mantine/core";
+import { CommunityCard } from "../CommunityCard/CommunityCard";
 
 interface Community {
   id?: string | number;

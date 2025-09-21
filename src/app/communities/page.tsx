@@ -1,17 +1,15 @@
 "use client";
 
 import { Header } from "@/components/header/Header";
-import { CommunitiesGrid } from "@/components/CommunitiesGrid";
+import { CommunitiesGrid } from "@/components/CommunitiesGrid/CommunitiesGrid";
 import {
   AppShell,
   Container,
   Stack,
   Group,
-  TextInput,
   Select,
   MultiSelect,
   Button,
-  Title,
   Grid,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";

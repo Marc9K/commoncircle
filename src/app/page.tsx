@@ -12,12 +12,10 @@ import {
   Text,
   Title,
   Image,
-  Center,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import Variable from "@/components/Variable";
-import Visible from "@/components/Visible";
-import { CommunitiesGrid } from "@/components/CommunitiesGrid";
+import Visible from "@/components/Visible/Visible";
+import { CommunitiesGrid } from "@/components/CommunitiesGrid/CommunitiesGrid";
 
 export default function Home() {
   const [opened, { toggle }] = useDisclosure();

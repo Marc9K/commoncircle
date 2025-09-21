@@ -5,7 +5,6 @@ import {
   Group,
   Title,
   Text,
-  Button,
   Image,
   Badge,
   Container,
@@ -13,9 +12,10 @@ import {
   Card,
   Divider,
   Box,
+  Button,
 } from "@mantine/core";
 import { useState } from "react";
-import Variable from "./Variable";
+import Variable from "../Variable/Variable";
 
 export interface EventDetailData {
   id: string | number;

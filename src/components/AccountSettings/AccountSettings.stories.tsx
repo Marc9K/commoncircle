@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { AccountSettings } from "./AccountSettings";
-import { decorators } from "../../.storybook/previews";
+import { decorators } from "../../../.storybook/previews";
 
 const meta = {
   title: "Components/AccountSettings",

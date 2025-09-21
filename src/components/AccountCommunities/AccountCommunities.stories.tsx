@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
 import { AccountCommunities } from "./AccountCommunities";
-import { decorators } from "../../.storybook/previews";
+import { decorators } from "../../../.storybook/previews";
 
 const meta = {
   title: "Components/AccountCommunities",
