@@ -13,9 +13,13 @@ import {
   Divider,
   Box,
   Button,
+  Tabs,
+  NumberInput,
 } from "@mantine/core";
 import { useState } from "react";
 import Variable from "../Variable/Variable";
+import { EventAttendees, Attendee } from "../EventAttendees/EventAttendees";
+import { EventSettings } from "../EventSettings/EventSettings";
 
 export interface EventDetailData {
   id: string | number;
@@ -26,6 +30,9 @@ export interface EventDetailData {
   imageSrc: string;
   tags: string[];
   price?: number; // undefined = free
+  payWhatYouCan?: boolean;
+  payWhatYouCanMin?: number;
+  payWhatYouCanSuggested?: number;
   description: string;
   organizer: {
     name: string;
@@ -39,6 +46,15 @@ export interface EventDetailData {
   registrationDeadline?: string;
   communityId?: string | number;
   communityName?: string;
+  currentUserRole?:
+    | "owner"
+    | "manager"
+    | "event_creator"
+    | "door_person"
+    | null;
+  attendees?: Attendee[];
+  isRegistrationOpen?: boolean;
+  eventType?: "public" | "private";
 }
 
 function formatEventDateTime(startDateTime: string, endDateTime: string) {
@@ -153,7 +169,54 @@ function EventLocation({ event }: { event: EventDetailData }) {
   );
 }
 
+function PayWhatYouCanInput({
+  event,
+  amount,
+  onAmountChange,
+}: {
+  event: EventDetailData;
+  amount: number;
+  onAmountChange: (value: number) => void;
+}) {
+  const min = event.payWhatYouCanMin || 1;
+
+  return (
+    <Stack gap="sm">
+      <Text size="md" fw={500}>
+        Pay What You Can
+      </Text>
+      <NumberInput
+        value={amount}
+        onChange={(value) =>
+          onAmountChange(typeof value === "number" ? value : 0)
+        }
+        min={min}
+        step={1}
+        prefix="£"
+        placeholder={`set your own amount`}
+        size="md"
+      />
+      <Text size="sm" c="dimmed">
+        Minimum: £{min}
+      </Text>
+    </Stack>
+  );
+}
+
 function EventPrice({ event }: { event: EventDetailData }) {
+  if (event.payWhatYouCan) {
+    return (
+      <Stack gap="sm">
+        <Text size="lg" fw={600} c="blue">
+          Pay What You Can
+        </Text>
+        <Text size="sm" c="dimmed">
+          Suggested: £{event.payWhatYouCanSuggested || 1}
+        </Text>
+      </Stack>
+    );
+  }
+
   return (
     <Group gap="xs">
       <Text size="xl" fw={700} c={event.price === undefined ? "green" : "blue"}>
@@ -211,12 +274,20 @@ function RegistrationButton({
   isRegistered,
   onRegister,
   onUnregister,
+  payWhatYouCanAmount,
+  onPayWhatYouCanAmountChange,
 }: {
   event: EventDetailData;
   isRegistered: boolean;
   onRegister: () => void;
   onUnregister: () => void;
+  payWhatYouCanAmount?: number;
+  onPayWhatYouCanAmountChange?: (amount: number) => void;
 }) {
+  const isManager =
+    event.currentUserRole === "owner" ||
+    event.currentUserRole === "manager" ||
+    event.currentUserRole === "event_creator";
   const spotsLeft = event.capacity
     ? event.capacity - (event.registeredCount || 0)
     : null;
@@ -267,6 +338,35 @@ function RegistrationButton({
       <Button disabled variant="light">
         Event Full
       </Button>
+    );
+  }
+
+  if (isManager) {
+    return (
+      <Button
+        variant="filled"
+        color="blue"
+        onClick={() =>
+          (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
+        }
+      >
+        Manage Event
+      </Button>
+    );
+  }
+
+  if (event.payWhatYouCan && onPayWhatYouCanAmountChange) {
+    return (
+      <Stack gap="md">
+        <PayWhatYouCanInput
+          event={event}
+          amount={payWhatYouCanAmount || event.payWhatYouCanSuggested || 1}
+          onAmountChange={onPayWhatYouCanAmountChange}
+        />
+        <Button onClick={onRegister}>
+          Pay £{payWhatYouCanAmount || event.payWhatYouCanSuggested || 1}
+        </Button>
+      </Stack>
     );
   }
 
@@ -325,6 +425,16 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   const [isRegistered, setIsRegistered] = useState<boolean>(
     event.isRegistered || false
   );
+  const [attendees, setAttendees] = useState<Attendee[]>(event.attendees || []);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState<boolean>(
+    event.isRegistrationOpen ?? true
+  );
+  const [eventType, setEventType] = useState<"public" | "private">(
+    event.eventType ?? "public"
+  );
+  const [payWhatYouCanAmount, setPayWhatYouCanAmount] = useState<number>(
+    event.payWhatYouCanSuggested || 1
+  );
 
   const handleRegister = () => {
     setIsRegistered(true);
@@ -334,64 +444,160 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     setIsRegistered(false);
   };
 
+  const handleCheckIn = (attendeeId: string) => {
+    setAttendees((prev) =>
+      prev.map((attendee) =>
+        attendee.id === attendeeId
+          ? { ...attendee, isCheckedIn: true }
+          : attendee
+      )
+    );
+  };
+
+  const handleCancel = (attendeeId: string) => {
+    setAttendees((prev) =>
+      prev.filter((attendee) => attendee.id !== attendeeId)
+    );
+  };
+
+  const handleRefund = (attendeeId: string) => {
+    setAttendees((prev) =>
+      prev.map((attendee) =>
+        attendee.id === attendeeId
+          ? { ...attendee, paymentStatus: "refunded" as const }
+          : attendee
+      )
+    );
+  };
+
+  const handleAddAttendee = (
+    newAttendee: Omit<Attendee, "id" | "registrationDate">
+  ) => {
+    const attendee: Attendee = {
+      ...newAttendee,
+      id: Date.now().toString(),
+      registrationDate: new Date().toISOString(),
+    };
+    setAttendees((prev) => [...prev, attendee]);
+  };
+
+  const handleMarkAsPaid = (attendeeId: string) => {
+    setAttendees((prev) =>
+      prev.map((attendee) =>
+        attendee.id === attendeeId
+          ? { ...attendee, paymentStatus: "paid" as const }
+          : attendee
+      )
+    );
+  };
+
+  const handleToggleRegistration = (isOpen: boolean) => {
+    setIsRegistrationOpen(isOpen);
+  };
+
+  const handleChangeEventType = (type: "public" | "private") => {
+    setEventType(type);
+  };
+
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">
         <EventImage event={event} />
 
-        <Variable at="md">
-          <Grid>
-            <Grid.Col span={8}>
+        <Tabs defaultValue="details">
+          <Tabs.List>
+            <Tabs.Tab value="details">Event Details</Tabs.Tab>
+            <Tabs.Tab value="attendees">
+              Attendees ({attendees.length})
+            </Tabs.Tab>
+            <Tabs.Tab value="settings">Settings</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="details" pt="md">
+            <Variable at="md">
+              <Grid>
+                <Grid.Col span={8}>
+                  <Stack gap="lg">
+                    <EventTitle event={event} />
+                    <EventDescription event={event} />
+                  </Stack>
+                </Grid.Col>
+                <Grid.Col span={4}>
+                  <Stack gap="lg">
+                    <Card withBorder radius="md" p="lg">
+                      <Stack gap="md">
+                        <EventDateTime event={event} />
+                        <Divider />
+                        <EventLocation event={event} />
+                        <Divider />
+                        <EventPrice event={event} />
+                        <Divider />
+                        <EventCapacity event={event} />
+                        <RegistrationButton
+                          event={event}
+                          isRegistered={isRegistered}
+                          onRegister={handleRegister}
+                          onUnregister={handleUnregister}
+                          payWhatYouCanAmount={payWhatYouCanAmount}
+                          onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
+                        />
+                      </Stack>
+                    </Card>
+                    <EventOrganizer event={event} />
+                  </Stack>
+                </Grid.Col>
+              </Grid>
               <Stack gap="lg">
                 <EventTitle event={event} />
-                <EventDescription event={event} />
-              </Stack>
-            </Grid.Col>
-            <Grid.Col span={4}>
-              <Stack gap="lg">
                 <Card withBorder radius="md" p="lg">
                   <Stack gap="md">
                     <EventDateTime event={event} />
-                    <Divider />
                     <EventLocation event={event} />
-                    <Divider />
                     <EventPrice event={event} />
-                    <Divider />
                     <EventCapacity event={event} />
                     <RegistrationButton
                       event={event}
                       isRegistered={isRegistered}
                       onRegister={handleRegister}
                       onUnregister={handleUnregister}
+                      payWhatYouCanAmount={payWhatYouCanAmount}
+                      onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
                     />
                   </Stack>
                 </Card>
+                <EventDescription event={event} />
                 <EventOrganizer event={event} />
               </Stack>
-            </Grid.Col>
-          </Grid>
-          <Stack gap="lg">
-            <EventTitle event={event} />
-            <Card withBorder radius="md" p="lg">
-              <Stack gap="md">
-                <EventDateTime event={event} />
-                <EventLocation event={event} />
-                <EventPrice event={event} />
-                <EventCapacity event={event} />
-                <RegistrationButton
-                  event={event}
-                  isRegistered={isRegistered}
-                  onRegister={handleRegister}
-                  onUnregister={handleUnregister}
-                />
-              </Stack>
-            </Card>
-            <EventDescription event={event} />
-            <EventOrganizer event={event} />
-          </Stack>
-        </Variable>
+            </Variable>
 
-        <EventTags event={event} />
+            <EventTags event={event} />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="attendees" pt="md">
+            <EventAttendees
+              attendees={attendees}
+              currentUserRole={event.currentUserRole}
+              onCheckIn={handleCheckIn}
+              onCancel={handleCancel}
+              onRefund={handleRefund}
+              onAddAttendee={handleAddAttendee}
+              onMarkAsPaid={handleMarkAsPaid}
+            />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="settings" pt="md">
+            <EventSettings
+              eventId={event.id}
+              eventName={event.name}
+              isRegistrationOpen={isRegistrationOpen}
+              eventType={eventType}
+              currentUserRole={event.currentUserRole}
+              onToggleRegistration={handleToggleRegistration}
+              onChangeEventType={handleChangeEventType}
+              onDeleteEvent={() => {}}
+            />
+          </Tabs.Panel>
+        </Tabs>
       </Stack>
     </Container>
   );

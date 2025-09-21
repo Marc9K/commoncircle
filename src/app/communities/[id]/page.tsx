@@ -235,13 +235,33 @@ export function CommunityDetail({
         </Tabs.List>
 
         <Tabs.Panel value="future" pt="md">
-          <Grid>
-            {community.futureEvents.map((event) => (
-              <Grid.Col key={event.id} span={{ base: 12, sm: 6, md: 4 }}>
-                <EventCard event={event} />
-              </Grid.Col>
-            ))}
-          </Grid>
+          <Stack gap="md">
+            <Group justify="space-between" align="center">
+              <Text size="sm" c="dimmed">
+                {community.futureEvents.length} upcoming events
+              </Text>
+              {community.currentUserRole &&
+                (community.currentUserRole === "owner" ||
+                  community.currentUserRole === "manager" ||
+                  community.currentUserRole === "event_creator") && (
+                  <Button
+                    variant="filled"
+                    onClick={() =>
+                      (window.location.href = `/communities/${community.id}/events/new`)
+                    }
+                  >
+                    Create Event
+                  </Button>
+                )}
+            </Group>
+            <Grid>
+              {community.futureEvents.map((event) => (
+                <Grid.Col key={event.id} span={{ base: 12, sm: 6, md: 4 }}>
+                  <EventCard event={event} />
+                </Grid.Col>
+              ))}
+            </Grid>
+          </Stack>
         </Tabs.Panel>
 
         <Tabs.Panel value="past" pt="md">

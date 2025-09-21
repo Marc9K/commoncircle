@@ -44,6 +44,7 @@ Please bring your laptop with Node.js installed. We'll provide all the starter c
     name: "Tech Education Manchester",
     email: "workshops@techedu.manchester",
     website: "https://techedu.manchester",
+    id: "org-1",
   },
   capacity: 30,
   registeredCount: 18,
@@ -208,6 +209,7 @@ Includes all sessions, workshops, meals, and networking events. Conference swag 
         name: "Global Tech Events Ltd",
         email: "info@globaltechevents.com",
         website: "https://techconf2024.com",
+        id: "org-2",
       },
       communityName: "UK Developers Network",
     },
@@ -262,6 +264,46 @@ export const NoCapacityLimit: Story = {
   },
 };
 
+export const PayWhatYouCanEvent: Story = {
+  args: {
+    event: {
+      ...baseEvent,
+      name: "Community Workshop: Pay What You Can",
+      price: undefined,
+      payWhatYouCan: true,
+      payWhatYouCanMin: 5,
+      payWhatYouCanMax: 50,
+      payWhatYouCanSuggested: 20,
+      tags: ["Workshop", "Community", "Pay What You Can", "Flexible"],
+      description: `Join us for a community-driven workshop where you contribute what you can afford.
+
+This inclusive event covers:
+• Introduction to web development
+• Hands-on coding exercises
+• Career guidance and mentorship
+• Networking with fellow developers
+• Project collaboration opportunities
+
+We believe learning should be accessible to everyone. Pay what you can - whether that's £5, £25, or £50. Your contribution helps us cover venue costs and materials while keeping the event accessible to all.
+
+Suggested contribution: £20
+Minimum: £5 (to cover basic costs)
+Maximum: £50 (to keep it fair for everyone)
+
+No one will be turned away due to financial constraints.`,
+      capacity: 40,
+      registeredCount: 22,
+      organizer: {
+        name: "Inclusive Tech Community",
+        email: "hello@inclusivetech.org",
+        website: "https://inclusivetech.org",
+        id: "org-3",
+      },
+      communityName: "Inclusive Tech Community",
+    },
+  },
+};
+
 export const DefaultMobile: Story = {
   ...Default,
   globals: {
@@ -291,6 +333,56 @@ export const MultiDayConferenceMobile: Story = {
 
 export const AlreadyRegisteredMobile: Story = {
   ...AlreadyRegistered,
+  globals: {
+    viewport: {
+      value: "mobile1",
+    },
+  },
+};
+
+export const PayWhatYouCanEventHighRange: Story = {
+  args: {
+    event: {
+      ...baseEvent,
+      name: "Premium Workshop: Pay What You Can",
+      price: undefined,
+      payWhatYouCan: true,
+      payWhatYouCanMin: 50,
+      payWhatYouCanMax: 200,
+      payWhatYouCanSuggested: 100,
+      tags: ["Premium", "Advanced", "Pay What You Can", "Professional"],
+      description: `An advanced workshop for experienced developers looking to level up their skills.
+
+This premium event includes:
+• Advanced React patterns and performance optimization
+• State management with Redux Toolkit and Zustand
+• Testing strategies with Jest and React Testing Library
+• Deployment and CI/CD best practices
+• One-on-one mentoring sessions
+• Premium materials and resources
+
+Pay what you can within our range to help us maintain high-quality instruction and resources.
+
+Suggested contribution: £100
+Minimum: £50 (to cover premium venue and materials)
+Maximum: £200 (to keep it accessible for professionals)
+
+Includes lunch, premium materials, and post-workshop support.`,
+      capacity: 20,
+      registeredCount: 8,
+      organizer: {
+        name: "Advanced Tech Academy",
+        email: "premium@advancedtech.academy",
+        website: "https://advancedtech.academy",
+        id: "org-4",
+      },
+      communityName: "Advanced Tech Academy",
+    },
+  },
+};
+
+export const PayWhatYouCanEventMobile: Story = {
+  ...PayWhatYouCanEvent,
   globals: {
     viewport: {
       value: "mobile1",

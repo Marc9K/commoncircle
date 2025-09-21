@@ -62,19 +62,12 @@ export function CommunityManagers({
   return (
     <Stack gap="lg">
       <Group justify="space-between">
-        <Stack gap="xs">
-          <Title order={3}>Community Managers</Title>
-          <Text size="sm" c="dimmed">
-            Manage who can help run your community and what permissions they
-            have.
-          </Text>
-        </Stack>
         {canManageManagers && (
           <Button
             // leftSection={<IconPlus size={16} />}
             onClick={open}
           >
-            Add Manager
+            Add Leader
           </Button>
         )}
       </Group>
