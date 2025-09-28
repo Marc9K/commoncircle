@@ -7,13 +7,10 @@ import {
   Community,
 } from "../AccountCommunities/AccountCommunities";
 import { AccountEvents, UserEvent } from "../AccountEvents/AccountEvents";
+import { User } from "@supabase/supabase-js";
 
 export interface AccountProps {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  user: User;
   memberCommunities?: Community[];
   runningCommunities?: Community[];
   pastEvents?: UserEvent[];

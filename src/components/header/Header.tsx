@@ -6,8 +6,22 @@ import AccountButton from "./AccountButton";
 import MainTabs from "./MainTabs";
 import React from "react";
 import Variable from "../Variable/Variable";
+import { createClient } from "@/lib/supabase/client";
 
 export function Header() {
+  const supabase = createClient();
+  const [user, setUser] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
   return (
     <>
       <div className={classes.header}>
@@ -22,7 +36,7 @@ export function Header() {
               </Variable>
             </Flex>
 
-            <AccountButton />
+            <AccountButton user={user} />
           </Group>
         </Container>
         <MainTabs />

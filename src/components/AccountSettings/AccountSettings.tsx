@@ -13,13 +13,10 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 export interface AccountSettingsProps {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  user: User;
 }
 
 export function AccountSettings({ user }: AccountSettingsProps) {
@@ -53,7 +50,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
       // Note: This would typically call a server action or API route
       // to properly delete the user account from both auth and database
       console.log("Delete account functionality would be implemented here");
-      
+
       // For now, just sign out
       await supabase.auth.signOut();
       window.location.href = "/";
@@ -72,14 +69,14 @@ export function AccountSettings({ user }: AccountSettingsProps) {
           <Title order={3} size="h4">
             Profile Information
           </Title>
-          
+
           <Group justify="space-between">
             <div>
               <Text size="sm" fw={500}>
                 Name
               </Text>
               <Text size="sm" c="dimmed">
-                {user.name}
+                {user.user_metadata.name}
               </Text>
             </div>
           </Group>
@@ -102,7 +99,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
           <Title order={3} size="h4">
             Account Actions
           </Title>
-          
+
           <Group justify="flex-start">
             <Button
               variant="filled"
@@ -120,7 +117,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
           <Title order={3} size="h4" c="red">
             Danger Zone
           </Title>
-          
+
           <Alert color="red" variant="light">
             <Text size="sm">
               Deleting your account will permanently remove all your data,
@@ -152,11 +149,11 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             Are you sure you want to delete your account? This action cannot be
             undone and will permanently remove all your data.
           </Text>
-          
+
           <Text size="sm" c="dimmed">
             Type <strong>DELETE</strong> to confirm:
           </Text>
-          
+
           <TextInput
             placeholder="Type DELETE to confirm"
             value={deleteConfirmation}

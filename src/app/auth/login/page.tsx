@@ -1,11 +1,27 @@
+import { Header } from "@/components/header/Header";
 import { LoginForm } from "@/components/LoginForm/login-form";
+import { createClient } from "@/lib/supabase/server";
+import { AppShell, Stack } from "@mantine/core";
+import { redirect } from "next/navigation";
 
-export default function Page() {
+export default async function Page() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/communities");
+  }
+
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
+    <Stack>
+      <Header />
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <LoginForm />
+        </div>
       </div>
-    </div>
+    </Stack>
   );
 }

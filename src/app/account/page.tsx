@@ -1,24 +1,32 @@
+"use client";
+
 import { redirect } from "next/navigation";
 import { Account } from "@/components/Account/Account";
+import { useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import React from "react";
+import { Loader } from "@mantine/core";
 
-export default async function AccountPage() {
-  const user = {
-    id: "1",
-    email: "test@test.com",
-    user_metadata: {
-      name: "Test User",
-    },
-  };
+export default function AccountPage() {
+  const [user, setUser] = React.useState<any>(undefined);
+  const supabase = createClient();
 
-  if (!user) {
+  React.useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
+  if (user === null) {
     redirect("/auth/login");
   }
+  if (user === undefined) {
+    return <Loader />;
+  }
 
-  const userData = {
-    id: user.id,
-    name: user.user_metadata?.name || user.email?.split("@")[0] || "User",
-    email: user.email || "",
-  };
-
-  return <Account user={userData} />;
+  return <Account user={user} />;
 }
