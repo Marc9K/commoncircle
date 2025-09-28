@@ -32,6 +32,9 @@ export default function NewEventPage() {
           onCancel={handleCancel}
           isEditing={false}
           isLoading={isLoading}
+          onSubmit={function (data: EventFormData): void {
+            throw new Error("Function not implemented.");
+          }}
         />
       </AppShell.Main>
     </AppShell>

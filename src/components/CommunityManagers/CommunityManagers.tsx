@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
-import { CommunityManager } from "@/app/communities/[id]/manage/page";
+import { CommunityManager } from "@/components/CommunityManage/CommunityManage";
 import RoleMenu, { ROLE_OPTIONS } from "../RoleMenu/RoleMenu";
 
 interface CommunityManagersProps {

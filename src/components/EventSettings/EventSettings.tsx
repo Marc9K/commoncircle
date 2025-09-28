@@ -226,7 +226,7 @@ export function EventSettings({
               Access Denied
             </Text>
             <Text size="sm" c="dimmed">
-              You don't have permission to manage this event's settings
+              {"You don't have permission to manage this event's settings"}
             </Text>
           </Stack>
         </Card>

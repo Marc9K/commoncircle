@@ -4,7 +4,7 @@ import { Header } from "@/components/header/Header";
 import { EventForm, EventFormData } from "@/components/EventForm/EventForm";
 import { AppShell } from "@mantine/core";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function EditEventPage() {
   const params = useParams<{ id: string; eventId: string }>();
@@ -20,8 +20,6 @@ export default function EditEventPage() {
   if (!communityId || !eventId) {
     return <div>Event not found</div>;
   }
-
-  useEffect(() => {}, [eventId]);
 
   const handleCancel = () => {
     router.push(`/communities/${communityId}/events/${eventId}`);
@@ -52,6 +50,9 @@ export default function EditEventPage() {
           onCancel={handleCancel}
           isEditing={true}
           isLoading={isLoading}
+          onSubmit={function (data: EventFormData): void {
+            throw new Error("Function not implemented.");
+          }}
         />
       </AppShell.Main>
     </AppShell>

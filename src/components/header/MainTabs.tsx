@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { FcSearch } from "react-icons/fc";
 import classes from "./Header.module.css";
 import Variable from "../Variable/Variable";
+import router from "next/router";
 
 const tabs = [
   { value: "/", label: "Home" },
@@ -28,15 +29,13 @@ function TheTabs() {
         list: classes.tabsList,
         tab: classes.tab,
       }}
+      onChange={(value) => {
+        router.push(value as string);
+      }}
     >
       <Tabs.List>
         {tabs.map((tab) => (
-          <Tabs.Tab
-            component="a"
-            href={tab.value}
-            value={tab.value}
-            key={tab.value}
-          >
+          <Tabs.Tab value={tab.value} key={tab.value}>
             {tab.label}
           </Tabs.Tab>
         ))}

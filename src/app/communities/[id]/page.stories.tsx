@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/nextjs";
-import Page, { CommunityDetail, CommunityDetailData } from "./page";
+import Page from "./page";
 import { decorators } from "../../../../.storybook/previews";
+import CommunityDetail, {
+  CommunityDetailData,
+} from "@/components/CommunityDetail/CommunityDetail";
 
 const meta = {
   title: "Pages/CommunityDetail",

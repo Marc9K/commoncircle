@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { CommunityEditForm } from "./CommunityEditForm";
-import { CommunityDetailData } from "@/app/communities/[id]/page";
 import { decorators } from "../../../.storybook/previews";
+import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
 
 const meta: Meta<typeof CommunityEditForm> = {
   title: "Components/CommunityEditForm",

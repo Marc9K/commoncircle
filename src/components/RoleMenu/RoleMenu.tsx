@@ -1,4 +1,4 @@
-import { CommunityManager } from "@/app/communities/[id]/manage/page";
+import { CommunityManager } from "@/components/CommunityManage/CommunityManage";
 import { ActionIcon, Divider, Menu } from "@mantine/core";
 import { FcEmptyTrash, FcSupport } from "react-icons/fc";
 

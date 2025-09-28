@@ -34,11 +34,11 @@ export function CommunitiesGrid({
               imageSrc={community.imageSrc}
               pastEvents={community.pastEvents}
               futureEvents={community.futureEvents}
-              href={
-                community.id !== undefined
-                  ? `/communities/${community.id}`
-                  : undefined
-              }
+              // href={
+              //   community.id !== undefined
+              //     ? `/communities/${community.id}`
+              //     : undefined
+              // }
             />
           </Grid.Col>
         ))}

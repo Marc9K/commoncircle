@@ -16,6 +16,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
 import RoleMenu, { ROLE_OPTIONS } from "../RoleMenu/RoleMenu";
+import { CommunityManager } from "../CommunityManage/CommunityManage";
 
 export interface ExistingMember {
   id: string;
@@ -128,7 +129,7 @@ export function ExistingMembers({
                   </Table.Td>
                   <Table.Td>
                     <RoleMenu
-                      manager={{ role: member.role }}
+                      manager={member as CommunityManager}
                       currentUserRole={"owner"}
                     />
                   </Table.Td>

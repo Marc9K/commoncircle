@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { EventAttendees, Attendee } from "./EventAttendees";
 import { decorators } from "../../../.storybook/previews";
 
@@ -42,7 +42,7 @@ const sampleAttendees: Attendee[] = [
     id: "2",
     name: "Sarah Johnson",
     email: "sarah.johnson@example.com",
-    role: "volunteer",
+    role: "member",
     isCheckedIn: false,
     registrationDate: "2024-12-02T14:30:00",
     paymentStatus: "paid",
@@ -176,7 +176,7 @@ export const LargeEvent: Story = {
         id: "8",
         name: "Maria Garcia",
         email: "maria.garcia@example.com",
-        role: "volunteer",
+        role: "member",
         isCheckedIn: true,
         registrationDate: "2024-12-08T10:15:00",
         paymentStatus: "paid",

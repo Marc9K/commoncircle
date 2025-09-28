@@ -17,7 +17,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
-import { CommunityDetailData } from "@/app/communities/[id]/page";
+import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
 
 interface CommunityEditFormProps {
   community: CommunityDetailData;

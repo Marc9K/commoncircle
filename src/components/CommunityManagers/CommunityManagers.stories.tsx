@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/nextjs";
 import { CommunityManagers } from "./CommunityManagers";
-import { CommunityManager } from "@/app/communities/[id]/manage/page";
+import { CommunityManager } from "@/components/CommunityManage/CommunityManage";
 import { decorators } from "../../../.storybook/previews";
 
 const meta: Meta<typeof CommunityManagers> = {

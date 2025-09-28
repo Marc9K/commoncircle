@@ -2,7 +2,13 @@ import { redirect } from "next/navigation";
 import { Account } from "@/components/Account/Account";
 
 export default async function AccountPage() {
-  const user = undefined;
+  const user = {
+    id: "1",
+    email: "test@test.com",
+    user_metadata: {
+      name: "Test User",
+    },
+  };
 
   if (!user) {
     redirect("/auth/login");

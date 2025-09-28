@@ -272,7 +272,6 @@ export const PayWhatYouCanEvent: Story = {
       price: undefined,
       payWhatYouCan: true,
       payWhatYouCanMin: 5,
-      payWhatYouCanMax: 50,
       payWhatYouCanSuggested: 20,
       tags: ["Workshop", "Community", "Pay What You Can", "Flexible"],
       description: `Join us for a community-driven workshop where you contribute what you can afford.
@@ -348,7 +347,6 @@ export const PayWhatYouCanEventHighRange: Story = {
       price: undefined,
       payWhatYouCan: true,
       payWhatYouCanMin: 50,
-      payWhatYouCanMax: 200,
       payWhatYouCanSuggested: 100,
       tags: ["Premium", "Advanced", "Pay What You Can", "Professional"],
       description: `An advanced workshop for experienced developers looking to level up their skills.
