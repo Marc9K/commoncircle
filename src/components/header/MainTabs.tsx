@@ -1,3 +1,4 @@
+"use client";
 import {
   Container,
   Group,
@@ -6,11 +7,10 @@ import {
   VisuallyHidden,
   Stack,
 } from "@mantine/core";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FcSearch } from "react-icons/fc";
 import classes from "./Header.module.css";
 import Variable from "../Variable/Variable";
-import router from "next/router";
 
 const tabs = [
   { value: "/", label: "Home" },
@@ -19,6 +19,7 @@ const tabs = [
 
 function TheTabs() {
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <Tabs
       value={pathname}

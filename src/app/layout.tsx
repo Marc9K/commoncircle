@@ -3,11 +3,15 @@ import "./globals.css";
 import "@mantine/core/styles.css";
 
 import {
+  AppShell,
+  AppShellHeader,
+  AppShellMain,
   ColorSchemeScript,
   MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
 import { theme } from "../theme";
+import { Header } from "@/components/header/Header";
 
 export const metadata: Metadata = {
   title: "CommonCircle",
@@ -26,7 +30,12 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider theme={theme} defaultColorScheme="light">
-          {children}
+          <AppShell>
+            <AppShellHeader>
+              <Header />
+            </AppShellHeader>
+            <AppShellMain>{children}</AppShellMain>
+          </AppShell>
         </MantineProvider>
       </body>
     </html>
