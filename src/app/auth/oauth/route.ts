@@ -16,6 +16,34 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: existingMember, error: memberError } = await supabase
+          .from("Members")
+          .select("id")
+          .eq("uid", user.id)
+          .single();
+
+        // If member doesn't exist
+        if (memberError && memberError.code === "PGRST116") {
+          const { error: insertError } = await supabase.from("Members").insert({
+            uid: user.id,
+            name: user.user_metadata?.name,
+            email: user.email,
+            avatar_url: user.user_metadata?.avatar_url || null,
+          });
+
+          if (insertError) {
+            console.error("Error creating member:", insertError);
+          }
+        } else if (memberError) {
+          console.error("Error checking member existence:", memberError);
+        }
+      }
+
       const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === "development";
       if (isLocalEnv) {
