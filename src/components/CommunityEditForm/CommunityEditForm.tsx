@@ -86,8 +86,6 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
     setIsSubmitting(true);
     const supabase = createClient();
 
-    // Check authentication before proceeding
-    console.log("Checking authentication...");
     const {
       data: { user },
       error: authError,
@@ -111,9 +109,6 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
     );
 
     try {
-      console.log("filteredValues", filteredValues);
-      console.log("Authenticated user:", user.id);
-
       if (community?.id) {
         const { error } = await supabase
           .from("communities")
@@ -128,14 +123,15 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
 
         router.push(`/communities/${community.id}`);
       } else {
-        const { data, error } = await supabase
-          .from("communities")
-          .insert(filteredValues)
-          .select()
-          .single();
+        const { data, error } = await supabase.functions.invoke(
+          "create-community",
+          {
+            body: filteredValues,
+          }
+        );
 
         if (error) {
-          console.error("Insert error:", error);
+          console.error("Create community error:", error);
           setIsSubmitting(false);
           throw error;
         }
