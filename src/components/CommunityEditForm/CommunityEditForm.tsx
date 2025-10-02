@@ -17,10 +17,12 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
+import { createClient } from "@/lib/supabase/client";
 
 interface CommunityEditFormProps {
-  community: CommunityDetailData;
+  community?: CommunityDetailData;
 }
 
 const LANGUAGE_OPTIONS = [
@@ -47,22 +49,22 @@ const COMMUNITY_TYPES = [
 ];
 
 export function CommunityEditForm({ community }: CommunityEditFormProps) {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    community.imageSrc
+    community?.imageSrc ?? null
   );
 
   const form = useForm({
     initialValues: {
-      name: community.name,
-      description: community.description,
-      contactEmail: community.contactEmail,
-      website: community.website,
-      location: community.location,
-      languagesSpoken: community.languagesSpoken,
-      type: community.type,
-      establishedDate: community.establishedDate,
+      name: community?.name ?? "",
+      description: community?.description ?? "",
+      email: community?.contactEmail ?? "",
+      website: community?.website ?? "",
+      location: community?.location ?? "",
+      languages: community?.languages ?? [],
+      public: community?.public ?? true,
+      established: community?.establishedDate ?? "",
     },
     validate: {
       name: (value) =>
@@ -80,23 +82,74 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
     }
   };
 
-  const handleSubmit = (values: typeof form.values) => {
+  const handleSubmit = async (values: typeof form.values) => {
     setIsSubmitting(true);
-    // Update form values
-    form.setValues(values);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-    setIsSubmitting(false);
+    const supabase = createClient();
+
+    // Check authentication before proceeding
+    console.log("Checking authentication...");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    console.log("Auth result:", { user: user?.id, error: authError });
+
+    if (authError || !user) {
+      console.error("Authentication error:", authError);
+      setIsSubmitting(false);
+      router.push("/auth/login");
+      return;
+    }
+
+    const filteredValues = Object.fromEntries(
+      Object.entries(values).filter(([_, value]) => {
+        if (Array.isArray(value)) {
+          return value.length > 0;
+        }
+        return value != "" && value !== null && value !== undefined;
+      })
+    );
+
+    try {
+      console.log("filteredValues", filteredValues);
+      console.log("Authenticated user:", user.id);
+
+      if (community?.id) {
+        const { error } = await supabase
+          .from("communities")
+          .update(filteredValues)
+          .eq("id", community?.id);
+
+        if (error) {
+          console.error("Update error:", error);
+          setIsSubmitting(false);
+          throw error;
+        }
+
+        router.push(`/communities/${community.id}`);
+      } else {
+        const { data, error } = await supabase
+          .from("communities")
+          .insert(filteredValues)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Insert error:", error);
+          setIsSubmitting(false);
+          throw error;
+        }
+
+        router.push(`/communities/${data.id}`);
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Stack gap="lg">
-      {showSuccess && (
-        <Alert color="green" title="Success">
-          Community details updated successfully!
-        </Alert>
-      )}
-
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
           <Card withBorder padding="lg">
@@ -119,6 +172,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                       placeholder="Choose an image file"
                       accept="image/*"
                       onChange={handleImageChange}
+                      data-testid="community-image-input"
                     />
                   </Stack>
                 </Group>
@@ -130,6 +184,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     placeholder="Enter community name"
                     required
                     {...form.getInputProps("name")}
+                    data-testid="community-name-input"
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 4 }}>
@@ -137,7 +192,11 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     label="Community Type"
                     data={COMMUNITY_TYPES}
                     required
-                    {...form.getInputProps("type")}
+                    value={form.values.public ? "public" : "private"}
+                    onChange={(value) =>
+                      form.setFieldValue("public", value === "public")
+                    }
+                    data-testid="community-type-select"
                   />
                 </Grid.Col>
               </Grid>
@@ -146,8 +205,8 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                 label="Description"
                 placeholder="Describe your community, its purpose, and what members can expect"
                 minRows={4}
-                required
                 {...form.getInputProps("description")}
+                data-testid="community-description-input"
               />
 
               <Grid>
@@ -155,16 +214,16 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                   <TextInput
                     label="Location"
                     placeholder="e.g., Manchester, UK"
-                    required
                     {...form.getInputProps("location")}
+                    data-testid="community-location-input"
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <TextInput
                     label="Established Date"
                     type="date"
-                    required
-                    {...form.getInputProps("establishedDate")}
+                    {...form.getInputProps("established")}
+                    data-testid="community-established-input"
                   />
                 </Grid.Col>
               </Grid>
@@ -182,7 +241,8 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     label="Contact Email"
                     placeholder="hello@community.org"
                     required
-                    {...form.getInputProps("contactEmail")}
+                    {...form.getInputProps("email")}
+                    data-testid="community-email-input"
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
@@ -190,6 +250,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     label="Website"
                     placeholder="https://community.org"
                     {...form.getInputProps("website")}
+                    data-testid="community-website-input"
                   />
                 </Grid.Col>
               </Grid>
@@ -207,16 +268,18 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                 searchable
                 clearable
                 {...form.getInputProps("languagesSpoken")}
+                data-testid="languages-select"
               />
             </Stack>
           </Card>
 
           <Group justify="flex-end">
-            <Button variant="light" type="button">
-              Cancel
-            </Button>
-            <Button type="submit" loading={isSubmitting}>
-              Save Changes
+            <Button
+              type="submit"
+              loading={isSubmitting}
+              data-testid="save-button"
+            >
+              Save
             </Button>
           </Group>
         </Stack>

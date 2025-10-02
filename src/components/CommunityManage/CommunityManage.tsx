@@ -7,6 +7,9 @@ import { CommunityManagers } from "@/components/CommunityManagers/CommunityManag
 import { Members } from "@/components/Members/Members";
 import { CommunitySettings } from "@/components/CommunitySettings/CommunitySettings";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 export interface CommunityManager {
   id: string;
@@ -37,27 +40,41 @@ export interface ExistingMember {
 }
 
 export interface CommunityManageProps {
-  community?: CommunityDetailData;
-  managers?: CommunityManager[];
-  pendingMembers?: PendingMember[];
-  existingMembers?: ExistingMember[];
   communityId?: string;
-  currentUserRole?:
-    | "owner"
-    | "manager"
-    | "event_creator"
-    | "door_person"
-    | "member";
 }
 
-export function CommunityManage({
-  community,
-  managers,
-  pendingMembers,
-  existingMembers,
-  communityId,
-  currentUserRole = "owner",
-}: CommunityManageProps) {
+export function CommunityManage({ communityId }: CommunityManageProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [community, setCommunity] = useState<CommunityDetailData | undefined>(
+    undefined
+  );
+  const [managers, setManagers] = useState<CommunityManager[]>([]);
+  const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
+  const [existingMembers, setExistingMembers] = useState<ExistingMember[]>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<
+    "owner" | "manager" | "event_creator" | "door_person" | null
+  >("owner");
+
+  useEffect(() => {
+    const fetchCommunity = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("communities")
+        .select("*")
+        .eq("id", communityId);
+
+      setCommunity(data?.[0]);
+    };
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    if (communityId) {
+      fetchCommunity();
+      fetchUser();
+    }
+  }, [communityId]);
   return (
     <AppShell padding="md" header={{ height: 60 }}>
       <AppShell.Header>
@@ -76,7 +93,7 @@ export function CommunityManage({
               </Tabs.List>
 
               <Tabs.Panel value="details" pt="md">
-                {community && <CommunityEditForm community={community} />}
+                <CommunityEditForm community={community} />
               </Tabs.Panel>
 
               <Tabs.Panel value="managers" pt="md">

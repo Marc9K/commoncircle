@@ -30,7 +30,7 @@ export function Account({
         <Title order={1}>Account</Title>
 
         <Tabs defaultValue="settings" variant="outline">
-          <Tabs.List>
+          <Tabs.List justify="flex-end">
             <Tabs.Tab value="communities">Communities</Tabs.Tab>
             <Tabs.Tab value="events">Events</Tabs.Tab>
             <Tabs.Tab value="settings">Settings</Tabs.Tab>

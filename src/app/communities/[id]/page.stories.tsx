@@ -31,8 +31,8 @@ const communitySample: CommunityDetailData = {
   contactEmail: "contact@techmeetup-manchester.com",
   website: "https://techmeetup-manchester.com",
   location: "Manchester, UK",
-  languagesSpoken: ["English", "Spanish", "Mandarin", "French"],
-  type: "public",
+  languages: ["English", "Spanish", "Mandarin", "French"],
+  public: "public",
   pastEvents: [
     {
       id: 1,
@@ -84,7 +84,7 @@ const communitySample: CommunityDetailData = {
 const privateCommunity: CommunityDetailData = {
   ...communitySample,
   name: "Exclusive Tech Leaders Circle",
-  type: "private",
+  public: "private",
   location: "London, UK",
   website: "https://techleaders-circle.com",
   description:

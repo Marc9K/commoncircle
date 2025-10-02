@@ -27,8 +27,8 @@ export interface CommunityDetailData {
   contactEmail: string;
   website: string;
   location: string;
-  languagesSpoken: string[];
-  type: "public" | "private";
+  languages: string[];
+  public: boolean;
   pastEvents: EventCardData[];
   futureEvents: EventCardData[];
   currentUserRole?:
@@ -57,7 +57,7 @@ function CommunityTitle({ community }: { community: CommunityDetailData }) {
     <Stack gap={4} miw={300}>
       <Title order={1}>{community.name}</Title>
       <Text c="dimmed" size="sm">
-        {community.type === "private"
+        {community.public === "private"
           ? "🔒 Private community"
           : "🌍 Public community"}{" "}
         • {community.memberCount.toLocaleString()} members • 📍{" "}
@@ -133,7 +133,7 @@ function JoinButton({
         </Button>
       ) : (
         <Button onClick={onJoinRequest}>
-          {community.type === "public" ? "Join" : "Request to join"}
+          {community.public === "public" ? "Join" : "Request to join"}
         </Button>
       )}
     </Group>
@@ -149,7 +149,7 @@ function CommunityDescription({
     <Stack gap="sm">
       <Text>{community.description}</Text>
       <Group gap="xs">
-        {community.languagesSpoken.map((language, index) => (
+        {community.languages.map((language, index) => (
           <Badge key={index} variant="light" size="sm">
             {language}
           </Badge>
@@ -170,7 +170,7 @@ export default function CommunityDetail({
   );
 
   const handleJoinRequest = () => {
-    if (community.type === "public") {
+    if (community.public === "public") {
       setIsMember(true);
     } else {
       setJoinRequestPending(true);

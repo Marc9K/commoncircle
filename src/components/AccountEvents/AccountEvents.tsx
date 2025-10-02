@@ -108,7 +108,7 @@ export function AccountEvents({
   return (
     <Stack gap="lg">
       <Tabs defaultValue="future" variant="outline">
-        <Tabs.List>
+        <Tabs.List justify="flex-end">
           <Tabs.Tab value="future">
             Upcoming Events ({activeFutureEvents.length})
           </Tabs.Tab>

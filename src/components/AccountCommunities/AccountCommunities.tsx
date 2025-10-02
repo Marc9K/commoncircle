@@ -1,3 +1,4 @@
+"use client";
 import {
   Stack,
   Tabs,
@@ -9,6 +10,7 @@ import {
 } from "@mantine/core";
 import { CommunityCard } from "../CommunityCard/CommunityCard";
 import { EmptyState } from "../EmptyState/EmptyState";
+import { useRouter } from "next/navigation";
 
 export interface Community {
   id: string;
@@ -47,12 +49,15 @@ export function AccountCommunities({
   memberCommunities = [],
   runningCommunities = [],
 }: AccountCommunitiesProps) {
-  const handleCreateNewCommunity = () => {};
+  const router = useRouter();
+  const handleCreateNewCommunity = () => {
+    router.push("/communities/new");
+  };
 
   return (
     <Stack gap="lg">
       <Tabs defaultValue="member" variant="outline">
-        <Tabs.List>
+        <Tabs.List justify="flex-end">
           <Tabs.Tab value="member">Membership</Tabs.Tab>
           <Tabs.Tab value="running">Leadership</Tabs.Tab>
         </Tabs.List>
@@ -72,7 +77,7 @@ export function AccountCommunities({
           <Stack gap="md">
             <Group justify="space-between" align="center">
               <Title order={4}>Managed Communities</Title>
-              <Button onClick={handleCreateNewCommunity}>
+              <Button component="a" href="/communities/new">
                 Start New Community
               </Button>
             </Group>
