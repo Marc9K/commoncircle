@@ -3,9 +3,9 @@ import cx from "clsx";
 import Link from "next/link";
 
 import classes from "./Header.module.css";
-import { User } from "@supabase/supabase-js";
+import { Member } from "@/types/member";
 
-function Account({ user }: { user: User }) {
+function Account({ user }: { user: Member }) {
   return (
     <UnstyledButton
       hidden={user == undefined}
@@ -15,13 +15,13 @@ function Account({ user }: { user: User }) {
     >
       <Group gap={7}>
         <Avatar
-          src={user.user_metadata.avatar_url ?? "/person.svg"}
-          alt={user.user_metadata.name}
+          src={user.avatar_url ?? "/person.svg"}
+          alt={user.name ?? "User"}
           radius="xl"
           size={20}
         />
         <Text fw={500} size="sm" lh={1} mr={3}>
-          {user.user_metadata.name}
+          {user.name ?? "User"}
         </Text>
       </Group>
     </UnstyledButton>
@@ -36,6 +36,6 @@ function LoginButton() {
   );
 }
 
-export default function AccountButton({ user }: { user?: User }) {
+export default function AccountButton({ user }: { user?: Member | null }) {
   return user ? Account({ user }) : LoginButton();
 }

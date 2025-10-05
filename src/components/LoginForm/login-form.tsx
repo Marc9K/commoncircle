@@ -96,7 +96,7 @@ export function LoginForm({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/oauth?next=/communities`,
+          redirectTo: `${window.location.origin}/communities`,
         },
       });
 

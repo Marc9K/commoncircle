@@ -1,26 +1,15 @@
 "use client";
-import { Container, Flex, Group, Title } from "@mantine/core";
+import { Container, Flex, Group, Loader, Title, Text } from "@mantine/core";
 import classes from "./Header.module.css";
 import { FcCalendar } from "react-icons/fc";
 import AccountButton from "./AccountButton";
 import MainTabs from "./MainTabs";
 import React from "react";
 import Variable from "../Variable/Variable";
-import { createClient } from "@/lib/supabase/client";
+import { useCurrentMember } from "@/hooks/use-current-member";
 
 export function Header() {
-  const supabase = createClient();
-  const [user, setUser] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
-  }, []);
+  const { member, loading, error } = useCurrentMember();
 
   return (
     <>
@@ -36,7 +25,7 @@ export function Header() {
               </Variable>
             </Flex>
 
-            <AccountButton user={user} />
+            <AccountButton user={member} />
           </Group>
         </Container>
         <MainTabs />

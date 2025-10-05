@@ -123,12 +123,11 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
 
         router.push(`/communities/${community.id}`);
       } else {
-        const { data, error } = await supabase.functions.invoke(
-          "create-community",
-          {
-            body: filteredValues,
-          }
-        );
+        const { data, error } = await supabase
+          .from("communities")
+          .insert(filteredValues)
+          .select()
+          .single();
 
         if (error) {
           console.error("Create community error:", error);
