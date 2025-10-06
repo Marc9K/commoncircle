@@ -118,6 +118,7 @@ function JoinButton({
         <Button
           variant="filled"
           onClick={() =>
+            typeof window !== "undefined" &&
             (window.location.href = `/communities/${community.id}/manage`)
           }
         >
@@ -233,6 +234,7 @@ export default function CommunityDetail({
                   <Button
                     variant="filled"
                     onClick={() =>
+                      typeof window !== "undefined" &&
                       (window.location.href = `/communities/${community.id}/events/new`)
                     }
                   >

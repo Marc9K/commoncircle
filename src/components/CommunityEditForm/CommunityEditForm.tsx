@@ -14,6 +14,7 @@ import {
   MultiSelect,
   Grid,
   Alert,
+  Progress,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -54,6 +55,8 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(
     community?.imageSrc ?? null
   );
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -74,11 +77,63 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
 
   const handleImageChange = (file: File | null) => {
     if (file) {
+      // Validate file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        setUploadError("File size must be less than 2MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setUploadError("Please select an image file");
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      setSelectedFile(file);
+      setUploadError(null);
+    } else {
+      setImagePreview(null);
+      setSelectedFile(null);
+      setUploadError(null);
+    }
+  };
+
+  const uploadImageToSupabase = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+
+    const supabase = createClient();
+
+    const fileExt = selectedFile.name.split(".").pop();
+    const uuid = crypto.randomUUID();
+    const fileName = `${uuid}.${fileExt}`;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from("communities")
+        .upload(fileName, selectedFile);
+
+      if (error) {
+        console.error("Upload error:", error);
+        setUploadError(error.message);
+        return null;
+      }
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from("communities")
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadError("Failed to upload image");
+      return null;
     }
   };
 
@@ -99,6 +154,17 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
       return;
     }
 
+    // Upload image first if a file is selected
+    let imageUrl: string | null = null;
+    if (selectedFile) {
+      imageUrl = await uploadImageToSupabase();
+      if (!imageUrl) {
+        console.error("Failed to upload image");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const filteredValues = Object.fromEntries(
       Object.entries(values).filter(([_, value]) => {
         if (Array.isArray(value)) {
@@ -107,6 +173,11 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
         return value != "" && value !== null && value !== undefined;
       })
     );
+
+    // Add image URL as 'picture' attribute
+    if (imageUrl) {
+      filteredValues.picture = imageUrl;
+    }
 
     try {
       if (community?.id) {
@@ -169,6 +240,12 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                       onChange={handleImageChange}
                       data-testid="community-image-input"
                     />
+
+                    {uploadError && (
+                      <Alert color="red" title="Upload Error">
+                        {uploadError}
+                      </Alert>
+                    )}
                   </Stack>
                 </Group>
               </Stack>
@@ -262,7 +339,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                 data={LANGUAGE_OPTIONS}
                 searchable
                 clearable
-                {...form.getInputProps("languagesSpoken")}
+                {...form.getInputProps("languages")}
                 data-testid="languages-select"
               />
             </Stack>
@@ -274,7 +351,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
               loading={isSubmitting}
               data-testid="save-button"
             >
-              Save
+              {selectedFile && isSubmitting ? "Saving..." : "Save"}
             </Button>
           </Group>
         </Stack>

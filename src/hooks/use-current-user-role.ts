@@ -21,7 +21,7 @@ export const useCurrentUserRole = (communityId: string) => {
           return;
         }
 
-        const mockRole = Math.random() > 0.5 ? "manager" : null;
+        const mockRole = communityId.length % 2 === 0 ? "manager" : null;
         setRole(mockRole);
       } catch (error) {
         console.error("Error fetching user role:", error);

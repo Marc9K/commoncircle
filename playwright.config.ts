@@ -16,6 +16,10 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     storageState: "tests/auth-state.json",
     trace: "on-first-retry",
+    // Set environment variables for the browser context
+    extraHTTPHeaders: {
+      'X-Playwright-Test': 'true'
+    }
   },
 
   /* Configure projects for major browsers */
@@ -61,5 +65,8 @@ export default defineConfig({
     command: "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    env: {PLAYWRIGHT: "true",
+  },
+
   },
 });

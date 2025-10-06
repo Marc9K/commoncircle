@@ -33,8 +33,9 @@ function EmailLoginForm({
       });
 
       if (error) throw error;
-      const url = (await createMember("/communities", supabase)).url;
-      router.push(url);
+      const url = await createMember("/communities", supabase);
+      router.push("/communities");
+      window.location.href = "/communities";
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
       setIsLoading(false);
@@ -96,7 +97,9 @@ export function LoginForm({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/communities`,
+          redirectTo: `${
+            typeof window !== "undefined" ? window.location.origin : ""
+          }/communities`,
         },
       });
 

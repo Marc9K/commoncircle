@@ -74,6 +74,7 @@ test.describe("CommunityEditForm", () => {
 
     await page.click('[data-testid="save-button"]');
 
+    // await expect(page).not.toHaveURL("/communities/new");
     await expect(page).toHaveURL(/\/communities\/[a-zA-Z0-9-]+/);
   });
 });

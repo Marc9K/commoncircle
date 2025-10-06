@@ -18,10 +18,8 @@ type Story = StoryObj<typeof meta>;
 const baseEvent: EventDetailData = {
   id: 1,
   name: "React Workshop: Building Modern Web Apps",
-  startDateTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  endDateTime: new Date(
-    Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000
-  ).toISOString(),
+  startDateTime: new Date("2024-12-15T10:00:00Z").toISOString(),
+  endDateTime: new Date("2024-12-15T13:00:00Z").toISOString(),
   location: "Manchester Tech Hub, 123 Innovation Street, Manchester M1 1AA",
   imageSrc: "./people.jpg",
   tags: ["React", "JavaScript", "Web Development", "Frontend", "Workshop"],
@@ -49,9 +47,7 @@ Please bring your laptop with Node.js installed. We'll provide all the starter c
   capacity: 30,
   registeredCount: 18,
   isRegistered: false,
-  registrationDeadline: new Date(
-    Date.now() + 6 * 24 * 60 * 60 * 1000
-  ).toISOString(),
+  registrationDeadline: new Date("2024-12-14T10:00:00Z").toISOString(),
   communityId: 1,
   communityName: "Manchester Tech Community",
 };
@@ -141,12 +137,8 @@ export const PastEvent: Story = {
     event: {
       ...baseEvent,
       name: "Past Workshop: JavaScript Fundamentals",
-      startDateTime: new Date(
-        Date.now() - 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      endDateTime: new Date(
-        Date.now() - 7 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000
-      ).toISOString(),
+      startDateTime: new Date("2024-11-25T14:00:00Z").toISOString(),
+      endDateTime: new Date("2024-11-25T16:00:00Z").toISOString(),
       tags: ["JavaScript", "Beginner", "Past Event"],
       registeredCount: 25,
       capacity: 30,
@@ -159,9 +151,7 @@ export const RegistrationClosed: Story = {
     event: {
       ...baseEvent,
       name: "Workshop with Closed Registration",
-      registrationDeadline: new Date(
-        Date.now() - 24 * 60 * 60 * 1000
-      ).toISOString(), // Yesterday
+      registrationDeadline: new Date("2024-11-24T14:00:00Z").toISOString(), // Yesterday
       capacity: 50,
       registeredCount: 35,
     },
@@ -173,12 +163,8 @@ export const MultiDayConference: Story = {
     event: {
       ...baseEvent,
       name: "Tech Conference 2024: Future of Development",
-      startDateTime: new Date(
-        Date.now() + 14 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      endDateTime: new Date(
-        Date.now() + 16 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 3 days later
+      startDateTime: new Date("2024-12-22T09:00:00Z").toISOString(),
+      endDateTime: new Date("2024-12-24T17:00:00Z").toISOString(), // 3 days later
       location:
         "London Convention Center, Excel London, Royal Victoria Dock, London E16 1XL",
       tags: ["Conference", "AI", "Blockchain", "Cloud Computing", "Keynote"],

@@ -37,12 +37,8 @@ const communitySample: CommunityDetailData = {
     {
       id: 1,
       name: "JavaScript Fundamentals Workshop",
-      startDateTime: new Date(
-        Date.now() - 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      endDateTime: new Date(
-        Date.now() - 7 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000
-      ).toISOString(),
+      startDateTime: new Date("2024-11-25T14:00:00Z").toISOString(),
+      endDateTime: new Date("2024-11-25T16:00:00Z").toISOString(),
       location: "Online",
       imageSrc: "./people.jpg",
       tags: ["JavaScript", "Beginner", "Web Development"],
@@ -53,12 +49,8 @@ const communitySample: CommunityDetailData = {
     {
       id: 2,
       name: "React Advanced Patterns Workshop",
-      startDateTime: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      endDateTime: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000
-      ).toISOString(),
+      startDateTime: new Date("2024-12-15T10:00:00Z").toISOString(),
+      endDateTime: new Date("2024-12-15T14:00:00Z").toISOString(),
       location: "Manchester Tech Hub",
       imageSrc: "./people.jpg",
       tags: ["React", "Advanced", "Frontend"],
@@ -67,12 +59,8 @@ const communitySample: CommunityDetailData = {
     {
       id: 3,
       name: "Tech Conference 2024: Future of AI",
-      startDateTime: new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      endDateTime: new Date(
-        Date.now() + 32 * 24 * 60 * 60 * 1000
-      ).toISOString(),
+      startDateTime: new Date("2025-01-15T09:00:00Z").toISOString(),
+      endDateTime: new Date("2025-01-17T17:00:00Z").toISOString(),
       location: "Manchester Convention Center",
       imageSrc: "./people.jpg",
       tags: ["AI", "Conference", "Machine Learning", "Innovation"],

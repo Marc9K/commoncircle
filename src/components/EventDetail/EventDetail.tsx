@@ -347,6 +347,7 @@ function RegistrationButton({
         variant="filled"
         color="blue"
         onClick={() =>
+          typeof window !== "undefined" &&
           (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
         }
       >
