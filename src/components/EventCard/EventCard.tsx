@@ -1,14 +1,18 @@
 import { Card, Image, Stack, Title, Text, Group, Badge } from "@mantine/core";
+import { useRouter } from "next/navigation";
 
 export interface EventCardData {
   id: string | number;
-  name: string;
-  startDateTime: string;
-  endDateTime: string;
+  title: string;
+  start: string;
+  finish: string;
   location: string;
-  imageSrc: string;
-  tags: string[];
+  picture: string;
+  description: string;
   price?: number; // undefined = free
+  capacity?: number;
+  tags?: string[];
+  community?: number;
 }
 
 interface EventCardProps {
@@ -38,19 +42,40 @@ function formatEventDateTime(startDateTime: string, endDateTime: string) {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const { name, startDateTime, endDateTime, location, imageSrc, tags, price } =
-    event;
+  const router = useRouter();
+  const {
+    id,
+    title: name,
+    start: startDateTime,
+    finish: endDateTime,
+    location,
+    picture,
+    price,
+    description,
+    capacity,
+    tags,
+    community,
+  } = event;
 
   return (
-    <Card withBorder padding="lg" radius="md" h="100%">
+    <Card
+      component="a"
+      withBorder
+      padding="lg"
+      radius="md"
+      h="100%"
+      href={`/communities/${community}/events/${id}`}
+    >
       <Stack gap="sm">
-        <Image
-          src={imageSrc}
-          alt={`${name} image`}
-          radius="md"
-          height={120}
-          fit="cover"
-        />
+        {picture && (
+          <Image
+            src={picture}
+            alt={`${name} image`}
+            radius="md"
+            height={120}
+            fit="cover"
+          />
+        )}
         <Stack gap="xs" style={{ flex: 1 }}>
           <Title order={4} size="h4" lineClamp={2}>
             {name}
@@ -64,7 +89,7 @@ export function EventCard({ event }: EventCardProps) {
             📍 {location}
           </Text>
 
-          {tags.length > 0 && (
+          {/* {tags.length > 0 && (
             <Group gap="xs">
               {tags.map((tag, index) => (
                 <Badge key={index} variant="light" size="xs">
@@ -72,11 +97,11 @@ export function EventCard({ event }: EventCardProps) {
                 </Badge>
               ))}
             </Group>
-          )}
+          )} */}
 
           <Group justify="flex-end" align="center" mt="auto">
-            <Text size="lg" fw={700} c={price === undefined ? "green" : "blue"}>
-              {price === undefined ? "Free" : `£${price}`}
+            <Text size="lg" fw={700} c={price == undefined ? "green" : "blue"}>
+              {price == undefined ? "Free" : `£${price}`}
             </Text>
           </Group>
         </Stack>

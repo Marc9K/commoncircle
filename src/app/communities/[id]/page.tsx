@@ -1,27 +1,77 @@
-"use client";
+"use server";
 
-import { Header } from "@/components/header/Header";
-import { AppShell } from "@mantine/core";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import CommunityDetail, {
   CommunityDetailData,
 } from "@/components/CommunityDetail/CommunityDetail";
+import { createClient } from "@/lib/supabase/server";
 
-export default function CommunityDetailPage() {
-  const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const id = params?.id;
-  if (!id) return notFound();
+export default async function CommunityDetailPage({
+  params,
+}: Promise<{ id: string }>) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: community, error } = await supabase
+    .from("communities")
+    .select("*")
+    .eq("id", id);
+
+  if (error) {
+    return notFound();
+  }
+
+  const { data: count } = await supabase.rpc("community_members_count", {
+    community_id: id,
+  });
+
+  const { data: user, error: userError } = await supabase.auth.getUser();
+  if (userError) {
+    return notFound();
+  }
+  const { data: member, error: memberError } = await supabase
+    .from("Members")
+    .select("*")
+    .eq("uid", user.user.id)
+    .single();
+  if (memberError) {
+    return notFound();
+  }
+
+  const { data: circle, error: circleError } = await supabase
+    .from("Circles")
+    .select("*")
+    .eq("community", id)
+    .eq("member", member.id)
+    .single();
+
+  const { data: futureEvents, error: eventsError } = await supabase.rpc(
+    "get_future_events",
+    { community_id: id }
+  );
+  if (eventsError) {
+    return notFound();
+  }
+  const { data: pastEvents, error: pastEventsError } = await supabase.rpc(
+    "get_past_events",
+    { community_id: id }
+  );
+  if (pastEventsError) {
+    return notFound();
+  }
 
   return (
-    <AppShell padding="md" header={{ height: 60 }}>
-      <AppShell.Header>
-        <Header />
-      </AppShell.Header>
-
-      <AppShell.Main mt={{ base: 60, sm: 30 }}>
-        <CommunityDetail community={{} as CommunityDetailData} />
-      </AppShell.Main>
-    </AppShell>
+    <CommunityDetail
+      community={
+        {
+          ...community[0],
+          memberCount: count,
+          isMember: circle != undefined,
+          joinRequestPending: circle?.role && circle.role == undefined,
+          pastEvents: pastEvents,
+          futureEvents: futureEvents,
+          currentUserRole: circle?.role,
+        } as CommunityDetailData
+      }
+    />
   );
 }

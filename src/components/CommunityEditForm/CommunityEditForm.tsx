@@ -53,7 +53,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    community?.imageSrc ?? null
+    community?.picture ?? null
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -62,12 +62,12 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
     initialValues: {
       name: community?.name ?? "",
       description: community?.description ?? "",
-      email: community?.contactEmail ?? "",
+      email: community?.email ?? "",
       website: community?.website ?? "",
       location: community?.location ?? "",
       languages: community?.languages ?? [],
       public: community?.public ?? true,
-      established: community?.establishedDate ?? "",
+      established: community?.established ?? "",
     },
     validate: {
       name: (value) =>

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import { EventCard, EventCardData } from "@/components/EventCard/EventCard";
@@ -18,17 +20,17 @@ import {
 export interface CommunityDetailData {
   id: string | number;
   name: string;
+  public: boolean;
+  location: string;
   description: string;
+  languages: string[];
+  email: string;
+  website: string;
+  picture: string;
+  established: string;
   memberCount: number;
-  imageSrc: string;
   isMember: boolean;
   joinRequestPending?: boolean;
-  establishedDate: string;
-  contactEmail: string;
-  website: string;
-  location: string;
-  languages: string[];
-  public: boolean;
   pastEvents: EventCardData[];
   futureEvents: EventCardData[];
   currentUserRole?:
@@ -41,7 +43,7 @@ export interface CommunityDetailData {
 function CommunityImage({ community }: { community: CommunityDetailData }) {
   return (
     <Image
-      src={community.imageSrc}
+      src={community.picture}
       alt={community.name}
       radius="md"
       fit="contain"
@@ -71,26 +73,30 @@ function CommunityMeta({ community }: { community: CommunityDetailData }) {
   return (
     <Group gap="xs">
       <Text size="sm" c="dimmed">
-        Founded in {new Date(community.establishedDate).getFullYear()}
+        Founded in {new Date(community.established).getFullYear()}
       </Text>
-      <Button
-        size="xs"
-        variant="subtle"
-        component="a"
-        href={`mailto:${community.contactEmail}`}
-      >
-        Contact us
-      </Button>
-      <Button
-        size="xs"
-        variant="subtle"
-        component="a"
-        href={community.website}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Visit website
-      </Button>
+      {community.email && (
+        <Button
+          size="xs"
+          variant="subtle"
+          component="a"
+          href={`mailto:${community.email}`}
+        >
+          Contact us
+        </Button>
+      )}
+      {community.website && (
+        <Button
+          size="xs"
+          variant="subtle"
+          component="a"
+          href={community.website}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Visit website
+        </Button>
+      )}
     </Group>
   );
 }
@@ -149,13 +155,15 @@ function CommunityDescription({
   return (
     <Stack gap="sm">
       <Text>{community.description}</Text>
-      <Group gap="xs">
-        {community.languages.map((language, index) => (
-          <Badge key={index} variant="light" size="sm">
-            {language}
-          </Badge>
-        ))}
-      </Group>
+      {community.languages?.length && community.languages.length > 0 && (
+        <Group gap="xs">
+          {community.languages.map((language, index) => (
+            <Badge key={index} variant="light" size="sm">
+              {language}
+            </Badge>
+          ))}
+        </Group>
+      )}
     </Stack>
   );
 }
@@ -171,7 +179,7 @@ export default function CommunityDetail({
   );
 
   const handleJoinRequest = () => {
-    if (community.public === "public") {
+    if (community.public) {
       setIsMember(true);
     } else {
       setJoinRequestPending(true);
@@ -181,7 +189,7 @@ export default function CommunityDetail({
   const handleLeave = () => setIsMember(false);
 
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" mt={120}>
       <Variable at="md">
         <Stack>
           <Group align="flex-start" wrap="nowrap" gap="lg">

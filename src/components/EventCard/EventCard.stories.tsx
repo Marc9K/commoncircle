@@ -17,44 +17,45 @@ type Story = StoryObj<typeof meta>;
 
 const sampleEventSameDay: EventCardData = {
   id: 1,
-  name: "React Workshop: Building Modern Web Apps",
-  startDateTime: new Date("2024-12-15T10:00:00Z").toISOString(), // Fixed date for consistent rendering
-  endDateTime: new Date("2024-12-15T13:00:00Z").toISOString(), // +3 hours
+  title: "React Workshop: Building Modern Web Apps",
+  start: new Date("2024-12-15T10:00:00Z").toISOString(), // Fixed date for consistent rendering
+  finish: new Date("2024-12-15T13:00:00Z").toISOString(), // +3 hours
   location: "Manchester Tech Hub",
-  imageSrc: "./people.jpg",
+  picture: "./people.jpg",
   tags: ["React", "JavaScript", "Web Development", "Frontend", "Workshop"],
   price: 25,
 };
 
 const sampleEventMultiDay: EventCardData = {
   id: 2,
-  name: "Tech Conference 2024: Future of Development",
-  startDateTime: new Date("2024-12-22T09:00:00Z").toISOString(), // Fixed date for consistent rendering
-  endDateTime: new Date("2024-12-24T17:00:00Z").toISOString(), // +2 days
+  title: "Tech Conference 2024: Future of Development",
+  start: new Date("2024-12-22T09:00:00Z").toISOString(), // Fixed date for consistent rendering
+  finish: new Date("2024-12-24T17:00:00Z").toISOString(), // +2 days
   location: "London Convention Center",
-  imageSrc: "./people.jpg",
+  picture: "./people.jpg",
   tags: ["Conference", "AI", "Blockchain", "Cloud Computing"],
   price: 199,
 };
 
 const freeEvent: EventCardData = {
   id: 3,
-  name: "Community Meetup: Networking Night",
-  startDateTime: new Date("2024-12-11T19:00:00Z").toISOString(), // Fixed date for consistent rendering
-  endDateTime: new Date("2024-12-11T21:00:00Z").toISOString(), // +2 hours
+  title: "Community Meetup: Networking Night",
+  start: new Date("2024-12-11T19:00:00Z").toISOString(), // Fixed date for consistent rendering
+  finish: new Date("2024-12-11T21:00:00Z").toISOString(), // +2 hours
   location: "Local Coffee Shop",
-  imageSrc: "./people.jpg",
+  picture: "./people.jpg",
   tags: ["Networking", "Community"],
   price: undefined, // Free event
 };
 
 const longTitleEvent: EventCardData = {
   id: 4,
-  name: "Advanced Machine Learning Techniques for Data Scientists: A Comprehensive Deep Dive Workshop",
-  startDateTime: new Date("2024-12-29T10:00:00Z").toISOString(),
-  endDateTime: new Date("2024-12-29T14:00:00Z").toISOString(),
+  title:
+    "Advanced Machine Learning Techniques for Data Scientists: A Comprehensive Deep Dive Workshop",
+  start: new Date("2024-12-29T10:00:00Z").toISOString(),
+  finish: new Date("2024-12-29T14:00:00Z").toISOString(),
   location: "University of Manchester",
-  imageSrc: "./people.jpg",
+  picture: "./people.jpg",
   tags: [
     "Machine Learning",
     "Data Science",
@@ -94,9 +95,9 @@ export const PastEvent: Story = {
   args: {
     event: {
       ...sampleEventSameDay,
-      name: "Past Workshop: JavaScript Fundamentals",
-      startDateTime: new Date("2024-11-25T14:00:00Z").toISOString(), // Fixed date for consistent rendering
-      endDateTime: new Date("2024-11-25T16:00:00Z").toISOString(), // +2 hours
+      title: "Past Workshop: JavaScript Fundamentals",
+      start: new Date("2024-11-25T14:00:00Z").toISOString(), // Fixed date for consistent rendering
+      finish: new Date("2024-11-25T16:00:00Z").toISOString(), // +2 hours
       tags: ["JavaScript", "Beginner"],
       price: 15,
     },
