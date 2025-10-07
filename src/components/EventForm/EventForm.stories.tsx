@@ -30,13 +30,13 @@ type Story = StoryObj<typeof EventForm>;
 
 // Sample event data for editing scenarios
 const sampleEventData: Partial<EventFormData> = {
-  name: "Tech Meetup 2024",
+  title: "Tech Meetup 2024",
   description:
     "Join us for an exciting evening of networking and tech discussions. We'll have speakers from leading companies sharing their insights on the latest trends in software development, AI, and cloud computing.",
-  startDateTime: "2024-12-25T18:00",
-  endDateTime: "2024-12-25T21:00",
+  start: "2024-12-25T18:00",
+  finish: "2024-12-25T21:00",
   location: "Tech Hub London, 123 Innovation Street",
-  imageSrc:
+  picture:
     "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=400&fit=crop",
   tags: ["networking", "tech", "AI", "cloud"],
   price: 25,
@@ -153,10 +153,10 @@ export const PayWhatYouCanEvent: Story = {
 export const MinimalEvent: Story = {
   args: {
     initialData: {
-      name: "Quick Coffee Chat",
+      title: "Quick Coffee Chat",
       description: "A casual meetup for coffee and conversation.",
-      startDateTime: "2024-12-15T10:00",
-      endDateTime: "2024-12-15T11:00",
+      start: "2024-12-15T10:00",
+      finish: "2024-12-15T11:00",
       location: "Local Coffee Shop",
       tags: ["casual", "coffee"],
       isFree: true,
@@ -178,11 +178,11 @@ export const LargeEvent: Story = {
   args: {
     initialData: {
       ...sampleEventData,
-      name: "Annual Tech Conference 2024",
+      title: "Annual Tech Conference 2024",
       description:
         "Our biggest event of the year! Join us for a full day of presentations, workshops, and networking opportunities. We'll have keynote speakers from major tech companies, hands-on workshops, and plenty of time to connect with fellow professionals.",
-      startDateTime: "2024-06-15T09:00",
-      endDateTime: "2024-06-15T17:00",
+      start: "2024-06-15T09:00",
+      finish: "2024-06-15T17:00",
       location: "Convention Center, 456 Business District",
       tags: [
         "conference",
@@ -212,10 +212,10 @@ export const LargeEvent: Story = {
 export const EventWithValidationErrors: Story = {
   args: {
     initialData: {
-      name: "A", // Too short
+      title: "A", // Too short
       description: "Short", // Too short
-      startDateTime: "2024-12-25T18:00",
-      endDateTime: "2024-12-25T17:00", // Before start time
+      start: "2024-12-25T18:00",
+      finish: "2024-12-25T17:00", // Before start time
       location: "X", // Too short
       isFree: false,
       price: 0, // Invalid for paid event

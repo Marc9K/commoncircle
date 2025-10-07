@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 
 import {
   AppShell,
@@ -10,6 +11,7 @@ import {
   MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { theme } from "../theme";
 import { Header } from "@/components/header/Header";
 
@@ -30,6 +32,7 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider theme={theme} defaultColorScheme="light">
+          <Notifications />
           <AppShell>
             <AppShellHeader>
               <Header />

@@ -1,0 +1,359 @@
+import { test, expect } from "@playwright/test";
+import { authenticateUser } from "./auth-setup";
+import { randomUUID } from "crypto";
+
+// Test data configuration
+interface EventFormData {
+  title?: string;
+  description?: string;
+  start?: string;
+  finish?: string;
+  location?: string;
+  tags?: string[];
+  price?: number;
+  capacity?: number;
+  pricingType?: "free" | "paid" | "pay-what-you-can";
+}
+
+// Generate future dates for testing
+const getFutureDate = (daysFromNow: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString().slice(0, 16); // Format for datetime-local input
+};
+
+// Test data arrays
+const requiredFields: EventFormData[] = [
+  {
+    title: "Test Event",
+    description: "This is a test event description that meets the minimum requirements",
+    start: getFutureDate(1),
+    finish: getFutureDate(2),
+    location: "Test Location",
+    pricingType: "free"
+  }
+];
+
+const allFields: EventFormData[] = [
+  {
+    title: "Complete Test Event",
+    description: "This is a comprehensive test event with all possible fields filled out for testing purposes",
+    start: getFutureDate(1),
+    finish: getFutureDate(2),
+    location: "Manchester, UK",
+    tags: ["technology", "networking", "workshop"],
+    price: 25.50,
+    capacity: 50,
+    pricingType: "paid"
+  },
+  {
+    title: "Free Community Event",
+    description: "A free community event for everyone to enjoy and participate in various activities",
+    start: getFutureDate(3),
+    finish: getFutureDate(4),
+    location: "Community Center, London",
+    tags: ["community", "free", "family"],
+    capacity: 100,
+    pricingType: "free"
+  },
+  {
+    title: "Pay What You Can Workshop",
+    description: "An inclusive workshop where attendees can contribute what they can afford",
+    start: getFutureDate(5),
+    finish: getFutureDate(6),
+    location: "Creative Hub, Birmingham",
+    tags: ["workshop", "inclusive", "creative"],
+    capacity: 30,
+    pricingType: "pay-what-you-can"
+  }
+];
+
+const incompleteFields: EventFormData[] = [
+  {
+    // Missing title
+    description: "Event without title",
+    start: getFutureDate(1),
+    finish: getFutureDate(2),
+    location: "Test Location",
+    pricingType: "free"
+  },
+  {
+    // Missing description
+    title: "Event without description",
+    start: getFutureDate(1),
+    finish: getFutureDate(2),
+    location: "Test Location",
+    pricingType: "free"
+  },
+  {
+    // Missing start date
+    title: "Event without start",
+    description: "Event missing start date",
+    finish: getFutureDate(2),
+    location: "Test Location",
+    pricingType: "free"
+  },
+  {
+    // Missing finish date
+    title: "Event without finish",
+    description: "Event missing finish date",
+    start: getFutureDate(1),
+    location: "Test Location",
+    pricingType: "free"
+  },
+  {
+    // Missing location
+    title: "Event without location",
+    description: "Event missing location",
+    start: getFutureDate(1),
+    finish: getFutureDate(2),
+    pricingType: "free"
+  },
+  {
+    // Invalid date range (finish before start)
+    title: "Invalid Date Event",
+    description: "Event with invalid date range",
+    start: getFutureDate(2),
+    finish: getFutureDate(1),
+    location: "Test Location",
+    pricingType: "free"
+  }
+];
+
+test.describe("EventForm", () => {
+  test.beforeEach(async ({ page }) => {
+    await authenticateUser(page);
+    // Navigate to a community's new event page (assuming community ID 1 exists)
+    await page.goto("/communities/36/events/new");
+    await page.waitForSelector('[data-testid="event-title-input"]');
+  });
+
+  test("should not submit when required fields are missing", async ({ page }) => {
+    await page.click('[data-testid="event-submit-button"]');
+    
+    // Should stay on the same page
+    await expect(page).toHaveURL(/\/communities\/36\/events\/new/);
+  });
+
+  test("should submit successfully with just required fields", async ({ page }) => {
+    const testData = requiredFields[0];
+    
+    await page.fill('[data-testid="event-title-input"]', testData.title!);
+    await page.fill('[data-testid="event-description-input"]', testData.description!);
+    await page.fill('[data-testid="event-start-input"]', testData.start!);
+    await page.fill('[data-testid="event-finish-input"]', testData.finish!);
+    await page.fill('[data-testid="event-location-input"]', testData.location!);
+    
+    // Ensure free pricing is selected
+    await page.click('[data-testid="pricing-free-tab"]');
+    
+    await page.click('[data-testid="event-submit-button"]');
+    
+    // Should redirect to community page
+    await expect(page).toHaveURL(/\/communities\/36/);
+  });
+
+  // Test all complete field combinations
+  allFields.forEach((testData, index) => {
+    test(`should submit successfully with all fields filled - scenario ${index + 1}`, async ({ page }) => {
+      await page.fill('[data-testid="event-title-input"]', testData.title!);
+      await page.fill('[data-testid="event-description-input"]', testData.description!);
+      await page.fill('[data-testid="event-start-input"]', testData.start!);
+      await page.fill('[data-testid="event-finish-input"]', testData.finish!);
+      await page.fill('[data-testid="event-location-input"]', testData.location!);
+      
+      // Add tags if provided
+      if (testData.tags) {
+        for (const tag of testData.tags) {
+          await page.fill('[data-testid="event-tags-input"]', tag);
+          await page.keyboard.press('Enter');
+        }
+      }
+      
+      // Set pricing type
+      if (testData.pricingType === "paid") {
+        await page.click('[data-testid="pricing-paid-tab"]');
+        if (testData.price) {
+          await page.fill('[data-testid="event-price-input"]', testData.price.toString());
+        }
+      } else if (testData.pricingType === "pay-what-you-can") {
+        await page.click('[data-testid="pricing-pay-what-you-can-tab"]');
+      } else {
+        await page.click('[data-testid="pricing-free-tab"]');
+      }
+      
+      // Set capacity if provided
+      if (testData.capacity) {
+        await page.fill('[data-testid="event-capacity-input"]', testData.capacity.toString());
+      }
+      
+      await page.click('[data-testid="event-submit-button"]');
+      
+      // Should redirect to community page
+      await expect(page).toHaveURL(/\/communities\/36/);
+    });
+  });
+
+  // Test incomplete field scenarios
+  incompleteFields.forEach((testData, index) => {
+    test(`should not submit with incomplete fields - scenario ${index + 1}`, async ({ page }) => {
+      // Fill only the provided fields
+      if (testData.title) {
+        await page.fill('[data-testid="event-title-input"]', testData.title);
+      }
+      if (testData.description) {
+        await page.fill('[data-testid="event-description-input"]', testData.description);
+      }
+      if (testData.start) {
+        await page.fill('[data-testid="event-start-input"]', testData.start);
+      }
+      if (testData.finish) {
+        await page.fill('[data-testid="event-finish-input"]', testData.finish);
+      }
+      if (testData.location) {
+        await page.fill('[data-testid="event-location-input"]', testData.location);
+      }
+      
+      // Set pricing type if provided
+      if (testData.pricingType) {
+        if (testData.pricingType === "paid") {
+          await page.click('[data-testid="pricing-paid-tab"]');
+        } else if (testData.pricingType === "pay-what-you-can") {
+          await page.click('[data-testid="pricing-pay-what-you-can-tab"]');
+        } else {
+          await page.click('[data-testid="pricing-free-tab"]');
+        }
+      }
+      
+      await page.click('[data-testid="event-submit-button"]');
+      
+      // Should stay on the same page due to validation errors
+      await expect(page).toHaveURL(/\/communities\/36\/events\/new/);
+    });
+  });
+
+  test("should handle paid event pricing correctly", async ({ page }) => {
+    const testData = {
+      title: "Paid Event Test",
+      description: "Testing paid event functionality with proper pricing",
+      start: getFutureDate(1),
+      finish: getFutureDate(2),
+      location: "Test Location",
+      price: 15.99,
+      pricingType: "paid" as const
+    };
+    
+    await page.fill('[data-testid="event-title-input"]', testData.title);
+    await page.fill('[data-testid="event-description-input"]', testData.description);
+    await page.fill('[data-testid="event-start-input"]', testData.start);
+    await page.fill('[data-testid="event-finish-input"]', testData.finish);
+    await page.fill('[data-testid="event-location-input"]', testData.location);
+    
+    // Select paid pricing
+    await page.click('[data-testid="pricing-paid-tab"]');
+    
+    // Price input should be visible
+    await expect(page.locator('[data-testid="event-price-input"]')).toBeVisible();
+    
+    await page.fill('[data-testid="event-price-input"]', testData.price.toString());
+    
+    await page.click('[data-testid="event-submit-button"]');
+    
+    // Should redirect to community page
+    await expect(page).toHaveURL(/\/communities\/36/);
+  });
+
+  test("should handle pay-what-you-can pricing correctly", async ({ page }) => {
+    const testData = {
+      title: "Pay What You Can Event",
+      description: "Testing pay what you can event functionality",
+      start: getFutureDate(1),
+      finish: getFutureDate(2),
+      location: "Test Location",
+      pricingType: "pay-what-you-can" as const
+    };
+    
+    await page.fill('[data-testid="event-title-input"]', testData.title);
+    await page.fill('[data-testid="event-description-input"]', testData.description);
+    await page.fill('[data-testid="event-start-input"]', testData.start);
+    await page.fill('[data-testid="event-finish-input"]', testData.finish);
+    await page.fill('[data-testid="event-location-input"]', testData.location);
+    
+    // Select pay-what-you-can pricing
+    await page.click('[data-testid="pricing-pay-what-you-can-tab"]');
+    
+    // Price input should not be visible
+    await expect(page.locator('[data-testid="event-price-input"]')).not.toBeVisible();
+    
+    await page.click('[data-testid="event-submit-button"]');
+    
+    // Should redirect to community page
+    await expect(page).toHaveURL(/\/communities\/36/);
+  });
+
+  test("should handle tags input correctly", async ({ page }) => {
+    const testData = {
+      title: "Event with Tags",
+      description: "Testing tags functionality in event creation",
+      start: getFutureDate(1),
+      finish: getFutureDate(2),
+      location: "Test Location",
+      tags: ["workshop", "technology", "networking"],
+      pricingType: "free" as const
+    };
+    
+    await page.fill('[data-testid="event-title-input"]', testData.title);
+    await page.fill('[data-testid="event-description-input"]', testData.description);
+    await page.fill('[data-testid="event-start-input"]', testData.start);
+    await page.fill('[data-testid="event-finish-input"]', testData.finish);
+    await page.fill('[data-testid="event-location-input"]', testData.location);
+    
+    // Add tags
+    for (const tag of testData.tags) {
+      await page.fill('[data-testid="event-tags-input"]', tag);
+      await page.keyboard.press('Enter');
+    }
+    
+    await page.click('[data-testid="event-submit-button"]');
+    
+    // Should redirect to community page
+    await expect(page).toHaveURL(/\/communities\/36/);
+  });
+
+  test("should handle capacity input correctly", async ({ page }) => {
+    const testData = {
+      title: "Event with Capacity",
+      description: "Testing capacity functionality in event creation",
+      start: getFutureDate(1),
+      finish: getFutureDate(2),
+      location: "Test Location",
+      capacity: 25,
+      pricingType: "free" as const
+    };
+    
+    await page.fill('[data-testid="event-title-input"]', testData.title);
+    await page.fill('[data-testid="event-description-input"]', testData.description);
+    await page.fill('[data-testid="event-start-input"]', testData.start);
+    await page.fill('[data-testid="event-finish-input"]', testData.finish);
+    await page.fill('[data-testid="event-location-input"]', testData.location);
+    await page.fill('[data-testid="event-capacity-input"]', testData.capacity.toString());
+    
+    await page.click('[data-testid="event-submit-button"]');
+    
+    // Should redirect to community page
+    await expect(page).toHaveURL(/\/communities\/36/);
+  });
+
+  test("should cancel form submission", async ({ page }) => {
+    await page.fill('[data-testid="event-title-input"]', "Test Event");
+    await page.fill('[data-testid="event-description-input"]', "Test description");
+    await page.fill('[data-testid="event-start-input"]', getFutureDate(1));
+    await page.fill('[data-testid="event-finish-input"]', getFutureDate(2));
+    await page.fill('[data-testid="event-location-input"]', "Test Location");
+    
+    await page.click('[data-testid="event-cancel-button"]');
+    
+    // Should redirect to community page
+    await expect(page).toHaveURL(/\/communities\/36/);
+  });
+});

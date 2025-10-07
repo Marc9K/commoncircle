@@ -25,19 +25,18 @@ import { useForm } from "@mantine/form";
 import { useState } from "react";
 
 export interface EventFormData {
-  name: string;
+  title: string;
   description: string;
-  startDateTime: string;
-  endDateTime: string;
+  start: string;
+  finish: string;
   location: string;
-  imageSrc: string;
+  picture?: string | File | null;
   tags: string[];
   price?: number;
   capacity?: number;
   registrationDeadline?: string;
   isFree: boolean;
   isPayWhatYouCan: boolean;
-  suggestedAmount?: number;
 }
 
 interface EventFormProps {
@@ -65,34 +64,23 @@ export function EventForm({
 
   const form = useForm<EventFormData>({
     initialValues: {
-      name: initialData?.name || "",
+      title: initialData?.title || "",
       description: initialData?.description || "",
-      startDateTime: initialData?.startDateTime || "",
-      endDateTime: initialData?.endDateTime || "",
+      start: initialData?.start || "",
+      finish: initialData?.finish || "",
       location: initialData?.location || "",
-      imageSrc: initialData?.imageSrc || "",
+      picture: initialData?.picture || "",
       tags: initialData?.tags || [],
       price: initialData?.price,
       capacity: initialData?.capacity,
       registrationDeadline: initialData?.registrationDeadline || "",
       isFree: initialData?.isFree ?? true,
       isPayWhatYouCan: initialData?.isPayWhatYouCan ?? false,
-      suggestedAmount: initialData?.suggestedAmount,
     },
     validate: {
-      name: (value) =>
+      title: (value) =>
         value.length < 3 ? "Name must be at least 3 characters" : null,
-      description: (value) =>
-        value.length < 10 ? "Description must be at least 10 characters" : null,
-      startDateTime: (value) => (!value ? "Start date is required" : null),
-      endDateTime: (value, values) => {
-        if (!value) return "End date is required";
-        if (value <= values.startDateTime)
-          return "End date must be after start date";
-        return null;
-      },
-      location: (value) =>
-        value.length < 3 ? "Location must be at least 3 characters" : null,
+      start: (value) => (!value ? "Start date is required" : null),
       price: (value, values) => {
         if (pricingType === "paid" && (!value || value <= 0)) {
           return "Price must be greater than 0 for paid events";
@@ -108,15 +96,45 @@ export function EventForm({
       isFree: pricingType === "free",
       isPayWhatYouCan: pricingType === "pay-what-you-can",
       price: pricingType === "paid" ? values.price : undefined,
+      picture: selectedFile,
     };
     onSubmit(formData);
   };
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    "./people.jpg"
-  );
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleImageChange = (file: File | null) => {
+    if (file) {
+      // Validate file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        setUploadError("File size must be less than 2MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        setUploadError("Please select an image file");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      setSelectedFile(file);
+      setUploadError(null);
+    } else {
+      setImagePreview(null);
+      setSelectedFile(null);
+      setUploadError(null);
+    }
+  };
 
   return (
-    <Container size="md" py="xl">
+    <Container size="md" py="xl" mt={120}>
       <Stack gap="xl">
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="lg">
@@ -136,16 +154,18 @@ export function EventForm({
                   label="Upload Image"
                   placeholder="Choose an image file"
                   accept="image/*"
+                  onChange={handleImageChange}
                 />
               </Stack>
             </Group>
             <Grid>
               <Grid.Col span={12}>
                 <TextInput
-                  label="Event Name"
-                  placeholder="Enter event name"
+                  label="Event Title"
+                  placeholder="Enter event title"
                   required
-                  {...form.getInputProps("name")}
+                  data-testid="event-title-input"
+                  {...form.getInputProps("title")}
                 />
               </Grid.Col>
             </Grid>
@@ -155,6 +175,7 @@ export function EventForm({
               placeholder="Describe your event..."
               minRows={4}
               resize="vertical"
+              data-testid="event-description-input"
               {...form.getInputProps("description")}
             />
 
@@ -164,30 +185,34 @@ export function EventForm({
                   <Input
                     type="datetime-local"
                     placeholder="Select start date and time"
-                    {...form.getInputProps("startDateTime")}
+                    data-testid="event-start-input"
+                    {...form.getInputProps("start")}
                   />
                 </Input.Wrapper>
               </Grid.Col>
               <Grid.Col span={6}>
-                <Input.Wrapper label="End Date & Time" required>
+                <Input.Wrapper label="End Date & Time">
                   <Input
                     type="datetime-local"
                     placeholder="Select end date and time"
-                    {...form.getInputProps("endDateTime")}
+                    data-testid="event-finish-input"
+                    {...form.getInputProps("finish")}
                   />
                 </Input.Wrapper>
               </Grid.Col>
             </Grid>
 
             <TextInput
+              label="Location"
               placeholder="Enter event location"
-              required
+              data-testid="event-location-input"
               {...form.getInputProps("location")}
             />
 
             <TagsInput
               label="Tags"
               placeholder="Add tags (press Enter to add)"
+              data-testid="event-tags-input"
               {...form.getInputProps("tags")}
             />
 
@@ -210,11 +235,19 @@ export function EventForm({
                       value as "free" | "paid" | "pay-what-you-can"
                     )
                   }
+                  data-testid="event-pricing-tabs"
                 >
                   <Tabs.List>
-                    <Tabs.Tab value="free">Free</Tabs.Tab>
-                    <Tabs.Tab value="paid">Fixed Price</Tabs.Tab>
-                    <Tabs.Tab value="pay-what-you-can">
+                    <Tabs.Tab value="free" data-testid="pricing-free-tab">
+                      Free
+                    </Tabs.Tab>
+                    <Tabs.Tab value="paid" data-testid="pricing-paid-tab">
+                      Fixed Price
+                    </Tabs.Tab>
+                    <Tabs.Tab
+                      value="pay-what-you-can"
+                      data-testid="pricing-pay-what-you-can-tab"
+                    >
                       Pay What You Can
                     </Tabs.Tab>
                   </Tabs.List>
@@ -231,6 +264,7 @@ export function EventForm({
                     decimalScale={2}
                     hideControls
                     rightSectionPointerEvents="none"
+                    data-testid="event-price-input"
                     {...form.getInputProps("price")}
                   />
                 )}
@@ -241,18 +275,6 @@ export function EventForm({
                       Attendees can choose their own contribution amount during
                       registration
                     </Text>
-                    <NumberInput
-                      label="Suggested Amount (Optional)"
-                      inputMode="decimal"
-                      prefix="£"
-                      allowNegative={false}
-                      placeholder="Enter suggested amount"
-                      min={0}
-                      decimalScale={2}
-                      hideControls
-                      rightSectionPointerEvents="none"
-                      {...form.getInputProps("suggestedAmount")}
-                    />
                   </Stack>
                 )}
 
@@ -270,15 +292,24 @@ export function EventForm({
                 inputMode="numeric"
                 allowNegative={false}
                 decimalScale={0}
+                data-testid="event-capacity-input"
                 {...form.getInputProps("capacity")}
               />
             </Stack>
 
             <Group justify="flex-end" gap="md">
-              <Button variant="outline" onClick={onCancel}>
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                data-testid="event-cancel-button"
+              >
                 Cancel
               </Button>
-              <Button type="submit" loading={isLoading}>
+              <Button
+                type="submit"
+                loading={isLoading}
+                data-testid="event-submit-button"
+              >
                 {isEditing ? "Update Event" : "Create Event"}
               </Button>
             </Group>
