@@ -17,11 +17,11 @@ type Story = StoryObj<typeof meta>;
 
 const baseEvent: EventDetailData = {
   id: 1,
-  name: "React Workshop: Building Modern Web Apps",
-  startDateTime: new Date("2024-12-15T10:00:00Z").toISOString(),
-  endDateTime: new Date("2024-12-15T13:00:00Z").toISOString(),
+  title: "React Workshop: Building Modern Web Apps",
+  start: new Date("2024-12-15T10:00:00Z").toISOString(),
+  finish: new Date("2024-12-15T13:00:00Z").toISOString(),
   location: "Manchester Tech Hub, 123 Innovation Street, Manchester M1 1AA",
-  imageSrc: "./people.jpg",
+  picture: "./people.jpg",
   tags: ["React", "JavaScript", "Web Development", "Frontend", "Workshop"],
   price: 25,
   description: `Join us for an intensive React workshop where you'll learn to build modern web applications from scratch.
@@ -62,7 +62,7 @@ export const FreeEvent: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Community Meetup: Networking Night",
+      title: "Community Meetup: Networking Night",
       price: undefined,
       tags: ["Networking", "Community", "Informal", "Coffee"],
       description: `A relaxed networking evening for local developers, designers, and tech enthusiasts.
@@ -85,7 +85,7 @@ export const AlreadyRegistered: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Photography Workshop - Confirmed Attendance",
+      title: "Photography Workshop - Confirmed Attendance",
       isRegistered: true,
       tags: ["Photography", "Workshop", "Creative", "Beginner-Friendly"],
       description: `Join us for a hands-on photography workshop perfect for beginners and enthusiasts alike.
@@ -110,7 +110,7 @@ export const AlmostFullEvent: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Exclusive AI Workshop - Limited Seats",
+      title: "Exclusive AI Workshop - Limited Seats",
       capacity: 20,
       registeredCount: 19,
       price: 150,
@@ -123,7 +123,7 @@ export const FullEvent: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Sold Out Conference",
+      title: "Sold Out Conference",
       capacity: 100,
       registeredCount: 100,
       price: 199,
@@ -136,9 +136,9 @@ export const PastEvent: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Past Workshop: JavaScript Fundamentals",
-      startDateTime: new Date("2024-11-25T14:00:00Z").toISOString(),
-      endDateTime: new Date("2024-11-25T16:00:00Z").toISOString(),
+      title: "Past Workshop: JavaScript Fundamentals",
+      start: new Date("2024-11-25T14:00:00Z").toISOString(),
+      finish: new Date("2024-11-25T16:00:00Z").toISOString(),
       tags: ["JavaScript", "Beginner", "Past Event"],
       registeredCount: 25,
       capacity: 30,
@@ -150,7 +150,7 @@ export const RegistrationClosed: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Workshop with Closed Registration",
+      title: "Workshop with Closed Registration",
       registrationDeadline: new Date("2024-11-24T14:00:00Z").toISOString(), // Yesterday
       capacity: 50,
       registeredCount: 35,
@@ -162,9 +162,9 @@ export const MultiDayConference: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Tech Conference 2024: Future of Development",
-      startDateTime: new Date("2024-12-22T09:00:00Z").toISOString(),
-      endDateTime: new Date("2024-12-24T17:00:00Z").toISOString(), // 3 days later
+      title: "Tech Conference 2024: Future of Development",
+      start: new Date("2024-12-22T09:00:00Z").toISOString(),
+      finish: new Date("2024-12-24T17:00:00Z").toISOString(), // 3 days later
       location:
         "London Convention Center, Excel London, Royal Victoria Dock, London E16 1XL",
       tags: ["Conference", "AI", "Blockchain", "Cloud Computing", "Keynote"],
@@ -206,7 +206,7 @@ export const EventWithManyTags: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Full Stack Development Bootcamp",
+      title: "Full Stack Development Bootcamp",
       tags: [
         "JavaScript",
         "TypeScript",
@@ -232,7 +232,8 @@ export const LongTitleEvent: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Advanced Machine Learning Techniques for Data Scientists: A Comprehensive Deep Dive Workshop on Neural Networks, Deep Learning, and Artificial Intelligence Applications in Modern Software Development",
+      title:
+        "Advanced Machine Learning Techniques for Data Scientists: A Comprehensive Deep Dive Workshop on Neural Networks, Deep Learning, and Artificial Intelligence Applications in Modern Software Development",
     },
   },
 };
@@ -241,7 +242,7 @@ export const NoCapacityLimit: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Virtual Conference - Unlimited Capacity",
+      title: "Virtual Conference - Unlimited Capacity",
       location: "Online Event",
       capacity: undefined,
       registeredCount: undefined,
@@ -254,7 +255,7 @@ export const PayWhatYouCanEvent: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Community Workshop: Pay What You Can",
+      title: "Community Workshop: Pay What You Can",
       price: undefined,
       payWhatYouCan: true,
       payWhatYouCanMin: 5,
@@ -329,7 +330,7 @@ export const PayWhatYouCanEventHighRange: Story = {
   args: {
     event: {
       ...baseEvent,
-      name: "Premium Workshop: Pay What You Can",
+      title: "Premium Workshop: Pay What You Can",
       price: undefined,
       payWhatYouCan: true,
       payWhatYouCanMin: 50,

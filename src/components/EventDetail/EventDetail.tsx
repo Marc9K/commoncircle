@@ -20,46 +20,38 @@ import { useState } from "react";
 import Variable from "../Variable/Variable";
 import { EventAttendees, Attendee } from "../EventAttendees/EventAttendees";
 import { EventSettings } from "../EventSettings/EventSettings";
+import { createClient } from "@/lib/supabase/client";
 
 export interface EventDetailData {
   id: string | number;
-  name: string;
-  startDateTime: string;
-  endDateTime: string;
+  title: string;
+  start: string;
+  finish?: string;
   location: string;
-  imageSrc: string;
+  picture: string;
   tags: string[];
   price?: number; // undefined = free
   payWhatYouCan?: boolean;
-  payWhatYouCanMin?: number;
-  payWhatYouCanSuggested?: number;
   description: string;
-  organizer: {
-    name: string;
-    email: string;
-    website?: string;
-    id: string;
-  };
   capacity?: number;
-  registeredCount?: number;
   isRegistered?: boolean;
-  registrationDeadline?: string;
   communityId?: string | number;
   communityName?: string;
+  communityEmail?: string;
+  communityWebsite?: string;
   currentUserRole?:
     | "owner"
     | "manager"
     | "event_creator"
     | "door_person"
+    | "member"
     | null;
-  attendees?: Attendee[];
-  isRegistrationOpen?: boolean;
+  attendees?: number;
   eventType?: "public" | "private";
 }
 
-function formatEventDateTime(startDateTime: string, endDateTime: string) {
+function formatEventDateTime(startDateTime: string, endDateTime?: string) {
   const start = new Date(startDateTime);
-  const end = new Date(endDateTime);
 
   const options: Intl.DateTimeFormatOptions = {
     weekday: "long",
@@ -74,28 +66,36 @@ function formatEventDateTime(startDateTime: string, endDateTime: string) {
   };
 
   const startDate = start.toLocaleDateString("en-GB", options);
-  const endDate = end.toLocaleDateString("en-GB", options);
   const startTime = start.toLocaleTimeString("en-GB", timeOptions);
-  const endTime = end.toLocaleTimeString("en-GB", timeOptions);
 
-  if (start.toDateString() === end.toDateString()) {
+  if (endDateTime) {
+    const end = new Date(endDateTime);
+    const endDate = end.toLocaleDateString("en-GB", options);
+    const endTime = end.toLocaleTimeString("en-GB", timeOptions);
+
+    if (start.toDateString() === end.toDateString()) {
+      return {
+        dateString: startDate,
+        timeString: `${startTime} - ${endTime}`,
+      };
+    }
     return {
-      dateString: startDate,
+      dateString: `${startDate} - ${endDate}`,
       timeString: `${startTime} - ${endTime}`,
     };
   }
 
   return {
-    dateString: `${startDate} - ${endDate}`,
-    timeString: `${startTime} - ${endTime}`,
+    dateString: `${startDate}`,
+    timeString: `${startTime}`,
   };
 }
 
 function EventImage({ event }: { event: EventDetailData }) {
   return (
     <Image
-      src={event.imageSrc}
-      alt={`${event.name} image`}
+      src={event.picture}
+      alt={`${event.title} image`}
       radius="md"
       fit="cover"
       h={{ base: 200, sm: 300, md: 400 }}
@@ -108,7 +108,7 @@ function EventTitle({ event }: { event: EventDetailData }) {
   return (
     <Stack gap={4}>
       <Title order={1} size="h2">
-        {event.name}
+        {event.title}
       </Title>
       {event.communityName && (
         <Text c="dimmed" size="sm">
@@ -121,8 +121,8 @@ function EventTitle({ event }: { event: EventDetailData }) {
 
 function EventDateTime({ event }: { event: EventDetailData }) {
   const { dateString, timeString } = formatEventDateTime(
-    event.startDateTime,
-    event.endDateTime
+    event.start,
+    event.finish
   );
 
   return (
@@ -178,8 +178,6 @@ function PayWhatYouCanInput({
   amount: number;
   onAmountChange: (value: number) => void;
 }) {
-  const min = event.payWhatYouCanMin || 1;
-
   return (
     <Stack gap="sm">
       <Text size="md" fw={500}>
@@ -190,15 +188,12 @@ function PayWhatYouCanInput({
         onChange={(value) =>
           onAmountChange(typeof value === "number" ? value : 0)
         }
-        min={min}
+        min={0}
         step={1}
         prefix="£"
         placeholder={`set your own amount`}
         size="md"
       />
-      <Text size="sm" c="dimmed">
-        Minimum: £{min}
-      </Text>
     </Stack>
   );
 }
@@ -210,17 +205,14 @@ function EventPrice({ event }: { event: EventDetailData }) {
         <Text size="lg" fw={600} c="blue">
           Pay What You Can
         </Text>
-        <Text size="sm" c="dimmed">
-          Suggested: £{event.payWhatYouCanSuggested || 1}
-        </Text>
       </Stack>
     );
   }
 
   return (
     <Group gap="xs">
-      <Text size="xl" fw={700} c={event.price === undefined ? "green" : "blue"}>
-        {event.price === undefined ? "Free" : `£${event.price}`}
+      <Text size="xl" fw={700} c={event.price == undefined ? "green" : "blue"}>
+        {event.price == undefined ? "Free" : `£${event.price}`}
       </Text>
     </Group>
   );
@@ -248,7 +240,7 @@ function EventTags({ event }: { event: EventDetailData }) {
 function EventCapacity({ event }: { event: EventDetailData }) {
   if (!event.capacity) return null;
 
-  const spotsLeft = event.capacity - (event.registeredCount || 0);
+  const spotsLeft = event.capacity - (event.attendees || 0);
 
   return (
     <Stack gap="xs">
@@ -257,7 +249,7 @@ function EventCapacity({ event }: { event: EventDetailData }) {
       </Text>
       <Group gap="xs">
         <Text size="sm">
-          {event.capacity - (event.registeredCount ?? 0)} avaliable
+          {event.capacity - (event.attendees ?? 0)} avaliable
         </Text>
         {spotsLeft === 0 && (
           <Badge color="red" variant="light" size="sm">
@@ -289,28 +281,42 @@ function RegistrationButton({
     event.currentUserRole === "manager" ||
     event.currentUserRole === "event_creator";
   const spotsLeft = event.capacity
-    ? event.capacity - (event.registeredCount || 0)
+    ? event.capacity - (event.attendees || 0)
     : null;
   const isFull = spotsLeft === 0;
-  const isPastEvent = new Date(event.startDateTime) < new Date();
-  const isRegistrationClosed = event.registrationDeadline
-    ? new Date(event.registrationDeadline) < new Date()
-    : false;
+  const isPastEvent = new Date(event.finish ?? event.start) < new Date();
 
-  const handleAddToCalendar = () => {};
+  const handleAddToCalendar = () => {
+    const startDate = new Date(event.start);
+    const endDate = event.finish
+      ? new Date(event.finish)
+      : new Date(startDate.getTime() + 1 * 60 * 60 * 1000);
+
+    // Format dates for Google Calendar (YYYYMMDDTHHMMSSZ)
+    const formatDate = (date: Date) => {
+      return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    };
+
+    const startTime = formatDate(startDate);
+    const endTime = formatDate(endDate);
+
+    const googleCalendarUrl = new URL(
+      "https://calendar.google.com/calendar/render"
+    );
+    googleCalendarUrl.searchParams.set("action", "TEMPLATE");
+    googleCalendarUrl.searchParams.set("text", event.title);
+    googleCalendarUrl.searchParams.set("dates", `${startTime}/${endTime}`);
+    googleCalendarUrl.searchParams.set("details", event.description);
+    googleCalendarUrl.searchParams.set("location", event.location);
+
+    // Open Google Calendar in a new tab
+    window.open(googleCalendarUrl.toString(), "_blank");
+  };
 
   if (isPastEvent) {
     return (
       <Button disabled variant="light">
         Event has ended
-      </Button>
-    );
-  }
-
-  if (isRegistrationClosed) {
-    return (
-      <Button disabled variant="light">
-        Registration closed
       </Button>
     );
   }
@@ -361,12 +367,10 @@ function RegistrationButton({
       <Stack gap="md">
         <PayWhatYouCanInput
           event={event}
-          amount={payWhatYouCanAmount || event.payWhatYouCanSuggested || 1}
+          amount={payWhatYouCanAmount || 0}
           onAmountChange={onPayWhatYouCanAmountChange}
         />
-        <Button onClick={onRegister}>
-          Pay £{payWhatYouCanAmount || event.payWhatYouCanSuggested || 1}
-        </Button>
+        <Button onClick={onRegister}>Pay £{payWhatYouCanAmount || 0}</Button>
       </Stack>
     );
   }
@@ -385,22 +389,22 @@ function EventOrganizer({ event }: { event: EventDetailData }) {
         <Text fw={600} size="md">
           Organizer
         </Text>
-        <Text>{event.organizer.name}</Text>
+        <Text>{event.communityName}</Text>
         <Group gap="xs">
           <Button
             size="xs"
             variant="subtle"
             component="a"
-            href={`mailto:${event.organizer.email}`}
+            href={`mailto:${event.communityEmail}`}
           >
             Contact organizer
           </Button>
-          {event.organizer.website && (
+          {event.communityWebsite && (
             <Button
               size="xs"
               variant="subtle"
               component="a"
-              href={event.organizer.website}
+              href={event.communityWebsite}
             >
               Visit website
             </Button>
@@ -426,16 +430,13 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   const [isRegistered, setIsRegistered] = useState<boolean>(
     event.isRegistered || false
   );
-  const [attendees, setAttendees] = useState<Attendee[]>(event.attendees || []);
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState<boolean>(
-    event.isRegistrationOpen ?? true
-  );
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState<boolean>(true);
   const [eventType, setEventType] = useState<"public" | "private">(
     event.eventType ?? "public"
   );
-  const [payWhatYouCanAmount, setPayWhatYouCanAmount] = useState<number>(
-    event.payWhatYouCanSuggested || 1
-  );
+  const [payWhatYouCanAmount, setPayWhatYouCanAmount] = useState<number>(0);
+
+  const supabase = createClient();
 
   const handleRegister = () => {
     setIsRegistered(true);
@@ -445,30 +446,50 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     setIsRegistered(false);
   };
 
-  const handleCheckIn = (attendeeId: string) => {
-    setAttendees((prev) =>
-      prev.map((attendee) =>
-        attendee.id === attendeeId
-          ? { ...attendee, isCheckedIn: true }
-          : attendee
-      )
-    );
+  const handleCheckIn = async (
+    attendeeId: string,
+    checkedin: boolean = true
+  ) => {
+    // setAttendees((prev) =>
+    //   prev.map((attendee) =>
+    //     attendee.id === attendeeId
+    //       ? { ...attendee, isCheckedIn: true }
+    //       : attendee
+    //   )
+    // );
+    console.log(attendeeId, checkedin);
+    const { error } = await supabase
+      .from("Attendees")
+      .update({ checkedin: checkedin })
+      .eq("member", attendeeId)
+      .eq("event", event.id);
+    console.log(error);
   };
 
-  const handleCancel = (attendeeId: string) => {
-    setAttendees((prev) =>
-      prev.filter((attendee) => attendee.id !== attendeeId)
-    );
+  const handleCancel = async (attendeeId: string) => {
+    await supabase
+      .from("Attendees")
+      .delete()
+      .eq("member", attendeeId)
+      .eq("event", event.id);
+    // setAttendees((prev) =>
+    //   prev.filter((attendee) => attendee.id !== attendeeId)
+    // );
   };
 
-  const handleRefund = (attendeeId: string) => {
-    setAttendees((prev) =>
-      prev.map((attendee) =>
-        attendee.id === attendeeId
-          ? { ...attendee, paymentStatus: "refunded" as const }
-          : attendee
-      )
-    );
+  const handleRefund = async (attendeeId: string) => {
+    await supabase
+      .from("Attendees")
+      .update({ paid: false })
+      .eq("member", attendeeId)
+      .eq("event", event.id);
+    // setAttendees((prev) =>
+    //   prev.map((attendee) =>
+    //     attendee.id === attendeeId
+    //       ? { ...attendee, paymentStatus: "refunded" as const }
+    //       : attendee
+    //   )
+    // );
   };
 
   const handleAddAttendee = (
@@ -477,19 +498,17 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     const attendee: Attendee = {
       ...newAttendee,
       id: Date.now().toString(),
-      registrationDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
-    setAttendees((prev) => [...prev, attendee]);
+    // setAttendees((prev) => [...prev, attendee]);
   };
 
-  const handleMarkAsPaid = (attendeeId: string) => {
-    setAttendees((prev) =>
-      prev.map((attendee) =>
-        attendee.id === attendeeId
-          ? { ...attendee, paymentStatus: "paid" as const }
-          : attendee
-      )
-    );
+  const handleMarkAsPaid = async (attendeeId: string, paid: boolean = true) => {
+    await supabase
+      .from("Attendees")
+      .update({ paid })
+      .eq("member", attendeeId)
+      .eq("event", event.id);
   };
 
   const handleToggleRegistration = (isOpen: boolean) => {
@@ -500,105 +519,116 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     setEventType(type);
   };
 
+  const details = (
+    <>
+      <Variable at="md">
+        <Grid>
+          <Grid.Col span={8}>
+            <Stack gap="lg">
+              <EventTitle event={event} />
+              <EventDescription event={event} />
+            </Stack>
+          </Grid.Col>
+          <Grid.Col span={4}>
+            <Stack gap="lg">
+              <Card withBorder radius="md" p="lg">
+                <Stack gap="md">
+                  <EventDateTime event={event} />
+                  <Divider />
+                  <EventLocation event={event} />
+                  <Divider />
+                  <EventPrice event={event} />
+                  <Divider />
+                  <EventCapacity event={event} />
+                  <RegistrationButton
+                    event={event}
+                    isRegistered={isRegistered}
+                    onRegister={handleRegister}
+                    onUnregister={handleUnregister}
+                    payWhatYouCanAmount={payWhatYouCanAmount}
+                    onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
+                  />
+                </Stack>
+              </Card>
+              <EventOrganizer event={event} />
+            </Stack>
+          </Grid.Col>
+        </Grid>
+        <Stack gap="lg">
+          <EventTitle event={event} />
+
+          <Stack gap="md">
+            <EventDateTime event={event} />
+            <EventLocation event={event} />
+            <EventPrice event={event} />
+            <EventCapacity event={event} />
+            <RegistrationButton
+              event={event}
+              isRegistered={isRegistered}
+              onRegister={handleRegister}
+              onUnregister={handleUnregister}
+              payWhatYouCanAmount={payWhatYouCanAmount}
+              onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
+            />
+          </Stack>
+
+          <EventDescription event={event} />
+          <EventOrganizer event={event} />
+        </Stack>
+      </Variable>
+
+      <EventTags event={event} />
+    </>
+  );
+  console.log(event.currentUserRole === "owner");
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">
         <EventImage event={event} />
+        {(event.currentUserRole === "owner" ||
+          event.currentUserRole === "manager" ||
+          event.currentUserRole === "event_creator" ||
+          event.currentUserRole === "door_person") && (
+          <Tabs defaultValue="details">
+            <Tabs.List>
+              <Tabs.Tab value="details">Event Details</Tabs.Tab>
+              <Tabs.Tab value="attendees">
+                Attendees ({event.attendees})
+              </Tabs.Tab>
+              <Tabs.Tab value="settings">Settings</Tabs.Tab>
+            </Tabs.List>
 
-        <Tabs defaultValue="details">
-          <Tabs.List>
-            <Tabs.Tab value="details">Event Details</Tabs.Tab>
-            <Tabs.Tab value="attendees">
-              Attendees ({attendees.length})
-            </Tabs.Tab>
-            <Tabs.Tab value="settings">Settings</Tabs.Tab>
-          </Tabs.List>
+            <Tabs.Panel value="details" pt="md">
+              {details}
+            </Tabs.Panel>
 
-          <Tabs.Panel value="details" pt="md">
-            <Variable at="md">
-              <Grid>
-                <Grid.Col span={8}>
-                  <Stack gap="lg">
-                    <EventTitle event={event} />
-                    <EventDescription event={event} />
-                  </Stack>
-                </Grid.Col>
-                <Grid.Col span={4}>
-                  <Stack gap="lg">
-                    <Card withBorder radius="md" p="lg">
-                      <Stack gap="md">
-                        <EventDateTime event={event} />
-                        <Divider />
-                        <EventLocation event={event} />
-                        <Divider />
-                        <EventPrice event={event} />
-                        <Divider />
-                        <EventCapacity event={event} />
-                        <RegistrationButton
-                          event={event}
-                          isRegistered={isRegistered}
-                          onRegister={handleRegister}
-                          onUnregister={handleUnregister}
-                          payWhatYouCanAmount={payWhatYouCanAmount}
-                          onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
-                        />
-                      </Stack>
-                    </Card>
-                    <EventOrganizer event={event} />
-                  </Stack>
-                </Grid.Col>
-              </Grid>
-              <Stack gap="lg">
-                <EventTitle event={event} />
-                <Card withBorder radius="md" p="lg">
-                  <Stack gap="md">
-                    <EventDateTime event={event} />
-                    <EventLocation event={event} />
-                    <EventPrice event={event} />
-                    <EventCapacity event={event} />
-                    <RegistrationButton
-                      event={event}
-                      isRegistered={isRegistered}
-                      onRegister={handleRegister}
-                      onUnregister={handleUnregister}
-                      payWhatYouCanAmount={payWhatYouCanAmount}
-                      onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
-                    />
-                  </Stack>
-                </Card>
-                <EventDescription event={event} />
-                <EventOrganizer event={event} />
-              </Stack>
-            </Variable>
+            <Tabs.Panel value="attendees" pt="md">
+              <EventAttendees
+                eventId={event.id}
+                currentUserRole={event.currentUserRole}
+                onCheckIn={handleCheckIn}
+                onCancel={handleCancel}
+                onRefund={handleRefund}
+                onAddAttendee={handleAddAttendee}
+                onMarkAsPaid={handleMarkAsPaid}
+              />
+            </Tabs.Panel>
 
-            <EventTags event={event} />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="attendees" pt="md">
-            <EventAttendees
-              attendees={attendees}
-              currentUserRole={event.currentUserRole}
-              onCheckIn={handleCheckIn}
-              onCancel={handleCancel}
-              onRefund={handleRefund}
-              onAddAttendee={handleAddAttendee}
-              onMarkAsPaid={handleMarkAsPaid}
-            />
-          </Tabs.Panel>
-
-          <Tabs.Panel value="settings" pt="md">
-            <EventSettings
-              eventId={event.id}
-              eventName={event.name}
-              isRegistrationOpen={isRegistrationOpen}
-              eventType={eventType}
-              currentUserRole={event.currentUserRole}
-              onToggleRegistration={handleToggleRegistration}
-              onChangeEventType={handleChangeEventType}
-              onDeleteEvent={() => {}}
-            />
-          </Tabs.Panel>
-        </Tabs>
+            <Tabs.Panel value="settings" pt="md">
+              <EventSettings
+                eventId={event.id}
+                eventName={event.title}
+                isRegistrationOpen={isRegistrationOpen}
+                eventType={eventType}
+                currentUserRole={event.currentUserRole}
+                onToggleRegistration={handleToggleRegistration}
+                onChangeEventType={handleChangeEventType}
+                onDeleteEvent={() => {}}
+              />
+            </Tabs.Panel>
+          </Tabs>
+        )}
+        {event.currentUserRole === "member" && details}
       </Stack>
     </Container>
   );

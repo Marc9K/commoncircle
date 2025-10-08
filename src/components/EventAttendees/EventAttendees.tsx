@@ -1,5 +1,7 @@
 "use client";
 
+import { createClient } from "@/lib/supabase/client";
+import useSWR, { useSWRConfig, mutate } from "swr";
 import {
   Stack,
   Group,
@@ -18,77 +20,41 @@ import {
   Title,
   Container,
   Input,
+  Paper,
 } from "@mantine/core";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FcCancel, FcDownLeft, FcExpand, FcOk, FcSearch } from "react-icons/fc";
 
 export interface Attendee {
   id: string;
   name: string;
   email: string;
-  role:
-    | "member"
-    | "event_creator"
-    | "manager"
-    | "owner"
-    | "door_person"
-    | "non_affiliated";
-  isCheckedIn: boolean;
-  registrationDate: string;
-  paymentStatus?: "paid" | "pending" | "refunded";
+  // role:
+  //   | "member"
+  //   | "event_creator"
+  //   | "manager"
+  //   | "owner"
+  //   | "door_person"
+  //   | "non_affiliated";
+  checkedIn: boolean;
+  createdAt?: string;
+  paid?: boolean;
 }
 
 interface EventAttendeesProps {
-  attendees: Attendee[];
+  eventId: string | number;
   currentUserRole?:
     | "owner"
     | "manager"
     | "event_creator"
     | "door_person"
+    | "member"
     | null;
-  onCheckIn: (attendeeId: string) => void;
+  onCheckIn: (attendeeId: string, checkedin?: boolean) => Promise<void>;
   onCancel: (attendeeId: string) => void;
-  onRefund: (attendeeId: string) => void;
+  onRefund: (attendeeId: string) => Promise<void>;
   onAddAttendee: (attendee: Omit<Attendee, "id" | "registrationDate">) => void;
-  onMarkAsPaid: (attendeeId: string) => void;
-}
-
-function getRoleColor(role: Attendee["role"]) {
-  switch (role) {
-    case "owner":
-      return "red";
-    case "manager":
-      return "orange";
-    case "event_creator":
-      return "blue";
-    case "door_person":
-      return "purple";
-    case "member":
-      return "cyan";
-    case "non_affiliated":
-      return "gray";
-    default:
-      return "gray";
-  }
-}
-
-function getRoleLabel(role: Attendee["role"]) {
-  switch (role) {
-    case "owner":
-      return "Owner";
-    case "manager":
-      return "Manager";
-    case "event_creator":
-      return "Event Creator";
-    case "door_person":
-      return "Door Person";
-    case "member":
-      return "Member";
-    case "non_affiliated":
-      return "Non-Affiliated";
-    default:
-      return "Unknown";
-  }
+  onMarkAsPaid: (attendeeId: string) => Promise<void>;
 }
 
 function AttendeeCard({
@@ -105,52 +71,55 @@ function AttendeeCard({
     | "manager"
     | "event_creator"
     | "door_person"
+    | "member"
     | null;
-  onCheckIn: (attendeeId: string) => void;
+  onCheckIn: (attendeeId: string, checkedin?: boolean) => Promise<void>;
   onCancel: (attendeeId: string) => void;
-  onRefund: (attendeeId: string) => void;
-  onMarkAsPaid: (attendeeId: string) => void;
+  onRefund: (attendeeId: string) => Promise<void>;
+  onMarkAsPaid: (attendeeId: string) => Promise<void>;
 }) {
   const canManage =
     currentUserRole === "owner" ||
     currentUserRole === "manager" ||
     currentUserRole === "door_person";
-
+  console.log(attendee);
   return (
-    <Card withBorder radius="md" p="md">
+    <Paper withBorder radius="md" p="md">
       <Group justify="space-between" align="flex-start">
         <Group gap="sm" style={{ flex: 1 }}>
           <Stack gap="xs" style={{ flex: 1 }}>
             <Text fw={500} size="sm">
-              {attendee.name}
+              {attendee.Members.name}
             </Text>
             <Text size="xs" c="dimmed">
-              {attendee.email}
+              {attendee.Members.email}
             </Text>
             <Group gap="xs">
-              <Badge
+              {/* <Badge
                 size="xs"
                 color={getRoleColor(attendee.role)}
                 variant="light"
               >
                 {getRoleLabel(attendee.role)}
+              </Badge> */}
+              <Badge
+                size="xs"
+                color={
+                  attendee.paid == undefined
+                    ? "yellow"
+                    : attendee.paid
+                    ? "green"
+                    : "red"
+                }
+                variant="light"
+              >
+                {attendee.paid == undefined
+                  ? "Pending payment"
+                  : attendee.paid
+                  ? "Paid"
+                  : "Not paid"}
               </Badge>
-              {attendee.paymentStatus && (
-                <Badge
-                  size="xs"
-                  color={
-                    attendee.paymentStatus === "paid"
-                      ? "green"
-                      : attendee.paymentStatus === "pending"
-                      ? "yellow"
-                      : "red"
-                  }
-                  variant="light"
-                >
-                  {attendee.paymentStatus}
-                </Badge>
-              )}
-              {attendee.isCheckedIn && (
+              {attendee.checkedin && (
                 <Badge size="xs" color="green" variant="light">
                   Checked In
                 </Badge>
@@ -159,62 +128,68 @@ function AttendeeCard({
           </Stack>
         </Group>
 
-        <Group gap="xs">
-          {canManage && !attendee.isCheckedIn && (
-            <Button
-              size="xs"
-              variant="light"
-              color="green"
-              leftSection={<FcOk size={14} />}
-              onClick={() => onCheckIn(attendee.id)}
-            >
-              Check In
-            </Button>
-          )}
+        {canManage && (
+          <Group gap="xs">
+            {!attendee.checkedin && (
+              <Button
+                size="xs"
+                variant="light"
+                color="green"
+                onClick={async () => await onCheckIn(attendee.member)}
+              >
+                Check In
+              </Button>
+            )}
 
-          {canManage && attendee.paymentStatus === "pending" && (
-            <Button
-              size="xs"
-              variant="light"
-              color="blue"
-              leftSection={<FcOk size={14} />}
-              onClick={() => onMarkAsPaid(attendee.id)}
-            >
-              Paid
-            </Button>
-          )}
+            {(attendee.paid == undefined || attendee.paid == false) && (
+              <Button
+                size="xs"
+                variant="light"
+                color="blue"
+                onClick={() => onMarkAsPaid(attendee.member)}
+              >
+                Paid
+              </Button>
+            )}
 
-          {canManage && (
-            <Menu shadow="md" width={200}>
-              <Menu.Target>
-                <ActionIcon variant="subtle" color="gray">
-                  <FcExpand size={16} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item>Uncheck In</Menu.Item>
-                <Menu.Item
-                  color="red"
-                  leftSection={<FcCancel size={14} />}
-                  onClick={() => onCancel(attendee.id)}
-                >
-                  Cancel
-                </Menu.Item>
-                {attendee.paymentStatus === "paid" && (
+            {
+              <Menu shadow="md" width={200}>
+                <Menu.Target>
+                  <ActionIcon variant="subtle" color="gray">
+                    <FcExpand size={16} />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {attendee.checkedin && (
+                    <Menu.Item
+                      onClick={() => onCheckIn(attendee.member, false)}
+                    >
+                      Uncheck In
+                    </Menu.Item>
+                  )}
                   <Menu.Item
-                    color="orange"
-                    leftSection={<FcDownLeft size={14} />}
-                    onClick={() => onRefund(attendee.id)}
+                    color="red"
+                    leftSection={<FcCancel size={14} />}
+                    onClick={() => onCancel(attendee.member)}
                   >
-                    Refund
+                    Cancel
                   </Menu.Item>
-                )}
-              </Menu.Dropdown>
-            </Menu>
-          )}
-        </Group>
+                  {attendee.paid && (
+                    <Menu.Item
+                      color="orange"
+                      leftSection={<FcDownLeft size={14} />}
+                      onClick={async () => await onRefund(attendee.member)}
+                    >
+                      Refund
+                    </Menu.Item>
+                  )}
+                </Menu.Dropdown>
+              </Menu>
+            }
+          </Group>
+        )}
       </Group>
-    </Card>
+    </Paper>
   );
 }
 
@@ -230,17 +205,16 @@ function AddAttendeeModal({
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "non_affiliated" as Attendee["role"],
+    // role: "non_affiliated" as Attendee["role"],
   });
 
   const handleSubmit = () => {
     if (formData.name && formData.email) {
       onSubmit({
         ...formData,
-        isCheckedIn: false,
-        paymentStatus: "pending",
+        checkedIn: false,
       });
-      setFormData({ name: "", email: "", role: "non_affiliated" });
+      setFormData({ name: "", email: "" });
       onClose();
     }
   };
@@ -263,7 +237,7 @@ function AddAttendeeModal({
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
         />
-        <Select
+        {/* <Select
           label="Role"
           placeholder="Select role"
           value={formData.role}
@@ -274,7 +248,7 @@ function AddAttendeeModal({
             { value: "member", label: "Member" },
             { value: "non_affiliated", label: "Non-Affiliated" },
           ]}
-        />
+        /> */}
         <Group justify="flex-end" gap="sm">
           <Button variant="outline" onClick={onClose}>
             Cancel
@@ -287,7 +261,7 @@ function AddAttendeeModal({
 }
 
 export function EventAttendees({
-  attendees,
+  eventId,
   currentUserRole,
   onCheckIn,
   onCancel,
@@ -297,6 +271,30 @@ export function EventAttendees({
 }: EventAttendeesProps) {
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  // const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const supabase = createClient();
+  const fetchAttendees = async () => {
+    const { data: attendees, error: attendeesError } = await supabase
+      .from("Attendees")
+      .select(
+        "id, created_at, checkedin, paid, member, Members (id, name, email, avatar_url)"
+      )
+      .eq("event", eventId);
+
+    if (attendeesError) {
+      console.error(attendeesError);
+    }
+    // setAttendees(attendees || []);
+    return attendees;
+  };
+  const {
+    data: attendees = [],
+    error,
+    isLoading,
+  } = useSWR("attendees", fetchAttendees);
+  // useEffect(() => {
+  //   fetchAttendees();
+  // }, [eventId]);
 
   const canManage =
     currentUserRole === "owner" ||
@@ -317,7 +315,7 @@ export function EventAttendees({
     );
   }, [attendees, searchQuery]);
 
-  const checkedInCount = attendees.filter((a) => a.isCheckedIn).length;
+  const checkedInCount = attendees.filter((a) => a.checkedin).length;
   const totalCount = attendees.length;
 
   return (
@@ -381,10 +379,22 @@ export function EventAttendees({
                 <AttendeeCard
                   attendee={attendee}
                   currentUserRole={currentUserRole}
-                  onCheckIn={onCheckIn}
-                  onCancel={onCancel}
-                  onRefund={onRefund}
-                  onMarkAsPaid={onMarkAsPaid}
+                  onCheckIn={async (attendeeId, checkedin) => {
+                    await onCheckIn(attendeeId, checkedin);
+                    mutate("attendees");
+                  }}
+                  onCancel={async () => {
+                    onCancel(attendee.member);
+                    mutate("attendees");
+                  }}
+                  onRefund={async () => {
+                    await onRefund(attendee.member);
+                    mutate("attendees");
+                  }}
+                  onMarkAsPaid={async () => {
+                    await onMarkAsPaid(attendee.member);
+                    mutate("attendees");
+                  }}
                 />
               </Grid.Col>
             ))}
@@ -394,7 +404,10 @@ export function EventAttendees({
         <AddAttendeeModal
           opened={addModalOpened}
           onClose={() => setAddModalOpened(false)}
-          onSubmit={onAddAttendee}
+          onSubmit={async (attendee) => {
+            onAddAttendee(attendee);
+            mutate("attendees");
+          }}
         />
       </Stack>
     </Container>
