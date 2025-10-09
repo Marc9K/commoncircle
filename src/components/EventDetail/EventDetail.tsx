@@ -588,7 +588,6 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       <EventTags event={event} />
     </>
   );
-  console.log(event.currentUserRole === "owner");
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">

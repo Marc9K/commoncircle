@@ -24,17 +24,21 @@ export function CommunityCard({
   const [futureEvents, setFutureEvents] = useState(0);
 
   const fetchMemberCount = async () => {
-    const {
-      data: {
-        member: { count },
-      },
-      error: memberCountError,
-    } = await supabase
-      .from("Circles")
-      .select("member(count)")
-      .eq("community", id)
-      .single();
-    setMemberCount(count);
+    try {
+      const {
+        data: {
+          member: { count },
+        },
+        error: memberCountError,
+      } = await supabase
+        .from("Circles")
+        .select("member(count)")
+        .eq("community", id)
+        .single();
+      setMemberCount(count);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const fetchPastEvents = async () => {
@@ -67,7 +71,14 @@ export function CommunityCard({
   //   .single();
 
   return (
-    <Card withBorder padding="lg" radius="md" h="100%">
+    <Card
+      component="a"
+      href={`/communities/${id}`}
+      withBorder
+      padding="lg"
+      radius="md"
+      h="100%"
+    >
       <Stack gap="md">
         {picture && (
           <Image

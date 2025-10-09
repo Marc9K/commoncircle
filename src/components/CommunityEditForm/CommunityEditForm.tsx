@@ -145,7 +145,6 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
-    console.log("Auth result:", { user: user?.id, error: authError });
 
     if (authError || !user) {
       console.error("Authentication error:", authError);

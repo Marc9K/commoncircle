@@ -82,7 +82,7 @@ function AttendeeCard({
     currentUserRole === "owner" ||
     currentUserRole === "manager" ||
     currentUserRole === "door_person";
-  console.log(attendee);
+
   return (
     <Paper withBorder radius="md" p="md">
       <Group justify="space-between" align="flex-start">

@@ -43,7 +43,7 @@ function formatEventDateTime(startDateTime: string, endDateTime: string) {
 
 export function EventCard({ event }: EventCardProps) {
   const {
-    id,
+    id: id,
     title: name,
     start: startDateTime,
     finish: endDateTime,
