@@ -24,12 +24,17 @@ export default async function AccountPage() {
       .eq("member.uid", user.id)
       .in("role", ["owner", "manager"]);
 
-  console.log(runningCommunities);
+  const { data: memberCommunities, error: memberCommunitiesError } =
+    await supabase
+      .from(`Circles`)
+      .select(`role, community (id, name, picture), member (uid)`)
+      .eq("member.uid", user.id)
+      .in("role", ["member"]);
 
   return (
     <Account
       user={user}
-      memberCommunities={[]}
+      memberCommunities={memberCommunities}
       runningCommunities={runningCommunities}
       pastEvents={[]}
       futureEvents={[]}
