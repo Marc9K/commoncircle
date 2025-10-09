@@ -38,7 +38,7 @@ export function ExistingMembers({
   existingMembers,
   currentUserRole,
 }: ExistingMembersProps) {
-  const [opened, { open, close }] = useDisclosure(false);
+  const [opened, { close }] = useDisclosure(false);
   const [selectedMember, setSelectedMember] = useState<ExistingMember | null>(
     null
   );

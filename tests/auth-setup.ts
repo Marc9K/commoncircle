@@ -10,10 +10,6 @@ function getTestPassword(index: number) {
   return `Password${index}`;
 }
 
-const logToFile = (message: string) => {
-  const logPath = path.join(__dirname, "global-setup.log");
-  fs.appendFileSync(logPath, `${new Date().toISOString()} - ${message}\n`);
-};
 
 export async function authenticateUser(page: Page) {
   await page.goto("/auth/login");

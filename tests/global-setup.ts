@@ -1,7 +1,7 @@
-import { FullConfig, webkit } from "@playwright/test";
+import { webkit } from "@playwright/test";
 import { authenticateUser } from "./auth-setup";
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   const browser = await webkit.launch();
   const page = await browser.newPage();
 

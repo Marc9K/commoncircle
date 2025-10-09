@@ -69,7 +69,7 @@ export default async function EventDetailPage({
     .eq("member", member.id)
     .single();
 
-  let { data: registration, error: isRegisteredError } = await supabase.rpc(
+  const { data: registration, error: isRegisteredError } = await supabase.rpc(
     "am_i_attending",
     { event_id: eventId }
   );

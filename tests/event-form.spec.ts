@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { authenticateUser } from "./auth-setup";
-import { randomUUID } from "crypto";
 
 // Test data configuration
 interface EventFormData {

@@ -8,7 +8,6 @@ import {
   Card,
   Switch,
   Divider,
-  Title,
   Container,
   Alert,
   Modal,
@@ -202,7 +201,6 @@ function DeleteEventSection({
 }
 
 export function EventSettings({
-  eventId,
   eventName,
   isRegistrationOpen,
   eventType,

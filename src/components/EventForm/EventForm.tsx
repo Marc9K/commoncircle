@@ -8,17 +8,13 @@ import {
   Button,
   Group,
   Text,
-  Title,
   Container,
   Grid,
-  Select,
   TagsInput,
-  Switch,
   Divider,
   Input,
   FileInput,
   Image,
-  FloatingIndicator,
   Tabs,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
@@ -81,7 +77,7 @@ export function EventForm({
       title: (value) =>
         value.length < 3 ? "Name must be at least 3 characters" : null,
       start: (value) => (!value ? "Start date is required" : null),
-      price: (value, values) => {
+      price: (value) => {
         if (pricingType === "paid" && (!value || value <= 0)) {
           return "Price must be greater than 0 for paid events";
         }
@@ -102,7 +98,7 @@ export function EventForm({
   };
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [, setUploadError] = useState<string | null>(null);
 
   const handleImageChange = (file: File | null) => {
     if (file) {

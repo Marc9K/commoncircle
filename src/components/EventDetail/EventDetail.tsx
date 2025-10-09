@@ -170,7 +170,6 @@ function EventLocation({ event }: { event: EventDetailData }) {
 }
 
 function PayWhatYouCanInput({
-  event,
   amount,
   onAmountChange,
 }: {

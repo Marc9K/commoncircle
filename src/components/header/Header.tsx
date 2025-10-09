@@ -1,5 +1,5 @@
 "use client";
-import { Container, Flex, Group, Loader, Title, Text } from "@mantine/core";
+import { Container, Flex, Group, Title } from "@mantine/core";
 import classes from "./Header.module.css";
 import { FcCalendar } from "react-icons/fc";
 import AccountButton from "./AccountButton";
@@ -9,7 +9,7 @@ import Variable from "../Variable/Variable";
 import { useCurrentMember } from "@/hooks/use-current-member";
 
 export function Header() {
-  const { member, loading, error } = useCurrentMember();
+  const { member } = useCurrentMember();
 
   return (
     <>

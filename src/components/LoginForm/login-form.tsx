@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { Button } from "@mantine/core";
@@ -27,13 +26,13 @@ function EmailLoginForm({
     setError(null);
 
     try {
-      const { error, data } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
-      const url = await createMember("/communities", supabase);
+      await createMember("/communities", supabase);
       router.push("/communities");
       window.location.href = "/communities";
     } catch (error: unknown) {
@@ -80,10 +79,7 @@ function EmailLoginForm({
   );
 }
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

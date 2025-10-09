@@ -1,4 +1,4 @@
-import { Card, Image, Stack, Title, Text, Group, Badge } from "@mantine/core";
+import { Card, Image, Stack, Title, Text, Group } from "@mantine/core";
 import { useRouter } from "next/navigation";
 
 export interface EventCardData {
@@ -42,7 +42,6 @@ function formatEventDateTime(startDateTime: string, endDateTime: string) {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const router = useRouter();
   const {
     id,
     title: name,
@@ -51,9 +50,6 @@ export function EventCard({ event }: EventCardProps) {
     location,
     picture,
     price,
-    description,
-    capacity,
-    tags,
     community,
   } = event;
 
