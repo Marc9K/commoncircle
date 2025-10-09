@@ -310,8 +310,8 @@ export function EventAttendees({
     const query = searchQuery.toLowerCase();
     return attendees.filter(
       (attendee) =>
-        attendee.name.toLowerCase().includes(query) ||
-        attendee.email.toLowerCase().includes(query)
+        attendee.Members.name.toLowerCase().includes(query) ||
+        attendee.Members.email.toLowerCase().includes(query)
     );
   }, [attendees, searchQuery]);
 

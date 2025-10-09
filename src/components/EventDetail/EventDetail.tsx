@@ -492,15 +492,24 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     // );
   };
 
-  const handleAddAttendee = (
+  const handleAddAttendee = async (
     newAttendee: Omit<Attendee, "id" | "registrationDate">
   ) => {
-    const attendee: Attendee = {
-      ...newAttendee,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    // setAttendees((prev) => [...prev, attendee]);
+    const { data, error } = await supabase
+      .from("Members")
+      .insert({
+        name: newAttendee.name,
+        email: newAttendee.email,
+      })
+      .select();
+    if (error) {
+      console.error(error);
+    }
+    if (data) {
+      await supabase
+        .from("Attendees")
+        .insert({ member: data[0].id, event: event.id, uid: null });
+    }
   };
 
   const handleMarkAsPaid = async (attendeeId: string, paid: boolean = true) => {
