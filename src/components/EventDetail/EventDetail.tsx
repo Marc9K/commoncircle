@@ -491,9 +491,11 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     // );
   };
 
-  const handleAddAttendee = async (
-    newAttendee: Omit<Attendee, "id" | "registrationDate">
-  ) => {
+  const handleAddAttendee = async (newAttendee: {
+    name: string;
+    email: string;
+  }) => {
+    console.log("Adding attendee:", newAttendee);
     const { data, error } = await supabase
       .from("Members")
       .insert({
@@ -504,10 +506,16 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     if (error) {
       console.error(error);
     }
+    console.log("Added attendee:", data);
     if (data) {
-      await supabase
+      console.log("Adding attendee to attendees table:", event.id);
+      const { error: attendeeError } = await supabase
         .from("Attendees")
-        .insert({ member: data[0].id, event: event.id, uid: null });
+        .insert({ member: data[0].id, event: event.id });
+      if (attendeeError) {
+        console.error(attendeeError);
+      }
+      console.log("Added attendee to attendees table:", attendeeError);
     }
   };
 
@@ -599,7 +607,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
           <Tabs defaultValue="details">
             <Tabs.List>
               <Tabs.Tab value="details">Event Details</Tabs.Tab>
-              <Tabs.Tab value="attendees">
+              <Tabs.Tab value="attendees" data-testid="attendees-tab">
                 Attendees ({event.attendees})
               </Tabs.Tab>
               <Tabs.Tab value="settings">Settings</Tabs.Tab>

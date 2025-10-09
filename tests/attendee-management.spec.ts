@@ -1,0 +1,280 @@
+import { test, expect } from "@playwright/test";
+import { authenticateUser } from "./auth-setup";
+import { randomUUID } from "crypto";
+
+// Test data configuration
+interface CommunityData {
+  name: string;
+  email: string;
+  description?: string;
+  location?: string;
+  website?: string;
+  established?: string;
+  type?: string;
+}
+
+interface EventData {
+  title: string;
+  description: string;
+  start: string;
+  finish: string;
+  location: string;
+  pricingType: "free" | "paid" | "pay-what-you-can";
+  price?: number;
+  capacity?: number;
+}
+
+// Generate future dates for testing
+const getFutureDate = (daysFromNow: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  return date.toISOString().slice(0, 16); // Format for datetime-local input
+};
+
+// Test data
+const testCommunity: CommunityData = {
+  name: `Test Community ${randomUUID()}`,
+  email: "test@example.com",
+  description: "A test community for attendee management testing",
+  location: "Manchester, UK",
+  website: "https://testcommunity.com",
+  established: "2024-01-01",
+  type: "Private - Requires approval"
+};
+
+const testEvent: EventData = {
+  title: "Test Event for Attendee Management",
+  description: "This is a test event for testing attendee management functionality",
+  start: getFutureDate(1),
+  finish: getFutureDate(2),
+  location: "Test Location",
+  pricingType: "paid",
+  price: 25.50,
+  capacity: 50
+};
+
+// Helper functions
+async function createCommunityAndEvent(page: any) {
+  // Create community
+  await page.goto("/communities/new");
+  await page.waitForSelector("form");
+
+  await page.fill('[data-testid="community-name-input"]', testCommunity.name);
+  await page.fill('[data-testid="community-email-input"]', testCommunity.email);
+  await page.fill('[data-testid="community-description-input"]', testCommunity.description!);
+  await page.fill('[data-testid="community-location-input"]', testCommunity.location!);
+  // await page.fill('[data-testid="community-website-input"]', testCommunity.website!);
+  await page.fill('[data-testid="community-established-input"]', testCommunity.established!);
+
+
+  await page.click('[data-testid="save-button"]');
+  
+  // Wait for redirect to community page and extract community ID
+  await expect(page).not.toHaveURL("/communities/new");
+  await expect(page).toHaveURL(/\/communities\/[a-zA-Z0-9-]+/);
+  const communityUrl = page.url();
+  const communityId = communityUrl.split('/').pop();
+  
+  // Create event
+  await page.goto(`/communities/${communityId}/events/new`);
+  await page.waitForSelector('[data-testid="event-title-input"]');
+
+  await page.fill('[data-testid="event-title-input"]', testEvent.title);
+  await page.fill('[data-testid="event-description-input"]', testEvent.description);
+  await page.fill('[data-testid="event-start-input"]', testEvent.start);
+  await page.fill('[data-testid="event-finish-input"]', testEvent.finish);
+  await page.fill('[data-testid="event-location-input"]', testEvent.location);
+  
+  // Set pricing type
+  await page.click('[data-testid="pricing-paid-tab"]');
+  await page.fill('[data-testid="event-price-input"]', testEvent.price!.toString());
+  await page.fill('[data-testid="event-capacity-input"]', testEvent.capacity!.toString());
+
+  await page.click('[data-testid="event-submit-button"]');
+  
+  // Wait for redirect to community page
+  // await expect(page).toHaveURL(`/communities/${communityId}/events/40`);
+  await page.waitForURL(/\/communities\/[0-9-]+\/events\/[0-9-]+/);
+  
+  // Extract event ID from URL
+  const eventUrl = page.url();
+  const eventId = eventUrl.split('/').pop();
+  
+  return { communityId, eventId };
+}
+
+async function navigateToAttendeesTab(page: any) {
+  // Click on the Attendees tab
+  await page.click('[data-testid="attendees-tab"]');
+  await page.waitForSelector('[data-testid="add-attendee-button"]');
+}
+
+async function addAttendee(page: any, name: string, email: string) {
+  // Click Add Attendee button
+  await page.click('[data-testid="add-attendee-button"]');
+  
+  // Wait for modal to open
+  await page.waitForSelector('[data-testid="attendee-name-input"]');
+  
+  // Fill in attendee details
+  await page.fill('[data-testid="attendee-name-input"]', name);
+  await page.fill('[data-testid="attendee-email-input"]', email);
+  
+  // Submit the form
+  await page.click('[data-testid="add-attendee-submit-button"]');
+  
+  // Wait for modal to close
+  await page.waitForSelector('[data-testid="add-attendee-button"]', { state: 'visible' });
+}
+
+test.describe("Attendee Management", () => {
+  let communityId: string;
+  let eventId: string;
+
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    
+    await authenticateUser(page);
+    const result = await createCommunityAndEvent(page);
+    communityId = result.communityId;
+    eventId = result.eventId;
+    
+    await context.close();
+  });
+
+  test.beforeEach(async ({ page }) => {
+    await authenticateUser(page);
+    await page.goto(`/communities/${communityId}/events/${eventId}`);
+    await navigateToAttendeesTab(page);
+  });
+
+  test("should add a new attendee successfully", async ({ page }) => {
+    const attendeeName = `Test Attendee ${randomUUID()}`;
+    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
+
+    await addAttendee(page, attendeeName, attendeeEmail);
+
+    // Verify attendee appears in the list
+    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
+    await expect(page.locator(`text=${attendeeEmail}`)).toBeVisible();
+    
+    // Verify attendee has "Pending payment" badge
+    await expect(page.locator('text=Not paid')).toBeVisible();
+  });
+
+  test("should check in an attendee", async ({ page }) => {
+    const attendeeName = `Test Attendee ${randomUUID()}`;
+    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
+
+    await addAttendee(page, attendeeName, attendeeEmail);
+
+    // Wait for attendee to appear in the list
+    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
+
+    // Find the attendee card and click Check In button
+    const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
+    await attendeeCard.getByTestId(`check-in-button`).click();
+
+    // Verify "Checked In" badge appears
+    await expect(page.locator('text=Checked In')).toBeVisible();
+    
+    // Verify "Check In" button is hidden
+    await expect(attendeeCard.getByTestId('check-in-button')).not.toBeVisible();
+  });
+
+  test("should uncheck in an attendee", async ({ page }) => {
+    const attendeeName = `Test Attendee ${randomUUID()}`;
+    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
+
+    await addAttendee(page, attendeeName, attendeeEmail);
+
+    // Wait for attendee to appear in the list
+    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
+
+    // Check in the attendee first
+    const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
+    await attendeeCard.getByTestId('check-in-button').click();
+    await expect(page.locator('text=Checked In')).toBeVisible();
+
+    // Click the menu button (3-dot menu)
+    await attendeeCard.getByTestId('attendee-menu').click();
+    
+    // Click "Uncheck In" menu item
+    await page.click('[data-testid="uncheck-in-menu-item"]');
+
+    // Verify "Checked In" badge disappears
+    await expect(attendeeCard.locator('text=Checked In')).not.toBeVisible();
+    
+    // Verify "Check In" button reappears
+    await expect(attendeeCard.getByTestId('check-in-button')).toBeVisible();
+  });
+
+  test("should mark attendee as paid", async ({ page }) => {
+    const attendeeName = `Test Attendee ${randomUUID()}`;
+    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
+
+    await addAttendee(page, attendeeName, attendeeEmail);
+
+    // Wait for attendee to appear in the list
+    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
+
+    // Find the attendee card and click Paid button
+    const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
+    await attendeeCard.getByTestId('mark-paid-button').click();
+
+    // // Verify badge changes to "Paid"
+    // await expect(page.locator('text=Paid')).toBeVisible();
+    
+    // Verify "Paid" button disappears
+    await expect(attendeeCard.getByTestId('mark-paid-button')).not.toBeVisible();
+  });
+
+  test("should refund a paid attendee", async ({ page }) => {
+    const attendeeName = `Test Attendee ${randomUUID()}`;
+    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
+
+    await addAttendee(page, attendeeName, attendeeEmail);
+
+    // Wait for attendee to appear in the list
+    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
+
+    // Mark as paid first
+    const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
+    await attendeeCard.getByTestId('mark-paid-button').click();
+    
+    await expect(attendeeCard.getByTestId('mark-paid-button')).not.toBeVisible();
+
+    // Click the menu button
+    await attendeeCard.getByTestId('attendee-menu').click();
+    
+    // Click "Refund" menu item
+    await page.click('[data-testid="refund-menu-item"]');
+
+    // Verify badge changes from "Paid" to "Not paid"
+    await expect(page.locator('text=Not paid')).toBeVisible();
+    
+    // Verify "Paid" button reappears
+    await expect(attendeeCard.getByTestId('mark-paid-button')).toBeVisible();
+  });
+
+  test("should cancel an attendee registration", async ({ page }) => {
+    const attendeeName = `Test Attendee ${randomUUID()}`;
+    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
+
+    await addAttendee(page, attendeeName, attendeeEmail);
+
+    // Verify attendee is in the list
+    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
+
+    // Find the attendee card and click menu button
+    const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
+    await attendeeCard.getByTestId('attendee-menu').click();
+    
+    // Click "Cancel" menu item
+    await page.click('[data-testid="cancel-menu-item"]');
+
+    // Verify attendee is removed from the list
+    await expect(page.locator(`text=${attendeeName}`)).not.toBeVisible();
+  });
+});

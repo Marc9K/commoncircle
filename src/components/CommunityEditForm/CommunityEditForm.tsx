@@ -178,6 +178,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
       filteredValues.picture = imageUrl;
     }
 
+    console.log("Updating community:", filteredValues);
     try {
       if (community?.id) {
         const { error } = await supabase

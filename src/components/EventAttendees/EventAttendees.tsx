@@ -27,18 +27,16 @@ import { FcCancel, FcDownLeft, FcExpand, FcOk, FcSearch } from "react-icons/fc";
 
 export interface Attendee {
   id: string;
-  name: string;
-  email: string;
-  // role:
-  //   | "member"
-  //   | "event_creator"
-  //   | "manager"
-  //   | "owner"
-  //   | "door_person"
-  //   | "non_affiliated";
-  checkedIn: boolean;
-  createdAt?: string;
-  paid?: boolean;
+  created_at: string;
+  checkedin: boolean;
+  paid: boolean | null;
+  member: string;
+  Members: {
+    id: string;
+    name: string;
+    email: string;
+    avatar_url: string | null;
+  }[];
 }
 
 interface EventAttendeesProps {
@@ -51,9 +49,13 @@ interface EventAttendeesProps {
     | "member"
     | null;
   onCheckIn: (attendeeId: string, checkedin?: boolean) => Promise<void>;
-  onCancel: (attendeeId: string) => void;
+  onCancel: (attendeeId: string) => Promise<void>;
   onRefund: (attendeeId: string) => Promise<void>;
-  onAddAttendee: (attendee: Omit<Attendee, "id" | "registrationDate">) => void;
+  onAddAttendee: (attendee: {
+    name: string;
+    email: string;
+    checkedIn: boolean;
+  }) => Promise<void>;
   onMarkAsPaid: (attendeeId: string) => Promise<void>;
 }
 
@@ -84,7 +86,12 @@ function AttendeeCard({
     currentUserRole === "door_person";
 
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper
+      withBorder
+      radius="md"
+      p="md"
+      data-testid={`attendee-card-${attendee.id}`}
+    >
       <Group justify="space-between" align="flex-start">
         <Group gap="sm" style={{ flex: 1 }}>
           <Stack gap="xs" style={{ flex: 1 }}>
@@ -136,6 +143,7 @@ function AttendeeCard({
                 variant="light"
                 color="green"
                 onClick={async () => await onCheckIn(attendee.member)}
+                data-testid={`check-in-button`}
               >
                 Check In
               </Button>
@@ -147,6 +155,7 @@ function AttendeeCard({
                 variant="light"
                 color="blue"
                 onClick={() => onMarkAsPaid(attendee.member)}
+                data-testid={`mark-paid-button`}
               >
                 Paid
               </Button>
@@ -155,7 +164,11 @@ function AttendeeCard({
             {
               <Menu shadow="md" width={200}>
                 <Menu.Target>
-                  <ActionIcon variant="subtle" color="gray">
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    data-testid={`attendee-menu`}
+                  >
                     <FcExpand size={16} />
                   </ActionIcon>
                 </Menu.Target>
@@ -163,6 +176,7 @@ function AttendeeCard({
                   {attendee.checkedin && (
                     <Menu.Item
                       onClick={() => onCheckIn(attendee.member, false)}
+                      data-testid="uncheck-in-menu-item"
                     >
                       Uncheck In
                     </Menu.Item>
@@ -171,6 +185,7 @@ function AttendeeCard({
                     color="red"
                     leftSection={<FcCancel size={14} />}
                     onClick={() => onCancel(attendee.member)}
+                    data-testid="cancel-menu-item"
                   >
                     Cancel
                   </Menu.Item>
@@ -179,6 +194,7 @@ function AttendeeCard({
                       color="orange"
                       leftSection={<FcDownLeft size={14} />}
                       onClick={async () => await onRefund(attendee.member)}
+                      data-testid="refund-menu-item"
                     >
                       Refund
                     </Menu.Item>
@@ -200,7 +216,7 @@ function AddAttendeeModal({
 }: {
   opened: boolean;
   onClose: () => void;
-  onSubmit: (attendee: Omit<Attendee, "id" | "registrationDate">) => void;
+  onSubmit: (attendee: { name: string; email: string }) => void;
 }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -210,9 +226,10 @@ function AddAttendeeModal({
 
   const handleSubmit = () => {
     if (formData.name && formData.email) {
+      console.log("Submitting form:", formData);
       onSubmit({
-        ...formData,
-        checkedIn: false,
+        name: formData.name,
+        email: formData.email,
       });
       setFormData({ name: "", email: "" });
       onClose();
@@ -227,6 +244,7 @@ function AddAttendeeModal({
           placeholder="Enter attendee name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          data-testid="attendee-name-input"
         />
         <TextInput
           label="Email"
@@ -236,6 +254,7 @@ function AddAttendeeModal({
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
+          data-testid="attendee-email-input"
         />
         {/* <Select
           label="Role"
@@ -250,10 +269,19 @@ function AddAttendeeModal({
           ]}
         /> */}
         <Group justify="flex-end" gap="sm">
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            data-testid="add-attendee-cancel-button"
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Add Attendee</Button>
+          <Button
+            onClick={handleSubmit}
+            data-testid="add-attendee-submit-button"
+          >
+            Add Attendee
+          </Button>
         </Group>
       </Stack>
     </Modal>
@@ -285,7 +313,7 @@ export function EventAttendees({
       console.error(attendeesError);
     }
     // setAttendees(attendees || []);
-    return attendees;
+    return attendees || [];
   };
   const {
     data: attendees = [],
@@ -304,19 +332,19 @@ export function EventAttendees({
   // Filter attendees based on search query
   const filteredAttendees = useMemo(() => {
     if (!searchQuery.trim()) {
-      return attendees;
+      return attendees || [];
     }
 
     const query = searchQuery.toLowerCase();
-    return attendees.filter(
+    return (attendees || []).filter(
       (attendee) =>
         attendee.Members.name.toLowerCase().includes(query) ||
         attendee.Members.email.toLowerCase().includes(query)
     );
   }, [attendees, searchQuery]);
 
-  const checkedInCount = attendees.filter((a) => a.checkedin).length;
-  const totalCount = attendees.length;
+  const checkedInCount = (attendees || []).filter((a) => a.checkedin).length;
+  const totalCount = (attendees || []).length;
 
   return (
     <Container size="md" py="xl">
@@ -334,6 +362,7 @@ export function EventAttendees({
             <Button
               //   leftSection={<IconUserPlus size={16} />}
               onClick={() => setAddModalOpened(true)}
+              data-testid="add-attendee-button"
             >
               Add Attendee
             </Button>
@@ -350,7 +379,7 @@ export function EventAttendees({
 
         <Divider />
 
-        {attendees.length === 0 ? (
+        {(attendees || []).length === 0 ? (
           <Card withBorder radius="md" p="xl" style={{ textAlign: "center" }}>
             <Stack gap="md">
               <Text size="lg" c="dimmed">
@@ -361,7 +390,7 @@ export function EventAttendees({
               </Text>
             </Stack>
           </Card>
-        ) : filteredAttendees.length === 0 ? (
+        ) : (filteredAttendees || []).length === 0 ? (
           <Card withBorder radius="md" p="xl" style={{ textAlign: "center" }}>
             <Stack gap="md">
               <Text size="lg" c="dimmed">
@@ -374,7 +403,7 @@ export function EventAttendees({
           </Card>
         ) : (
           <Grid>
-            {attendees.map((attendee) => (
+            {(attendees || []).map((attendee) => (
               <Grid.Col key={attendee.id} span={{ base: 12, sm: 6 }}>
                 <AttendeeCard
                   attendee={attendee}
@@ -384,7 +413,7 @@ export function EventAttendees({
                     mutate("attendees");
                   }}
                   onCancel={async () => {
-                    onCancel(attendee.member);
+                    await onCancel(attendee.member);
                     mutate("attendees");
                   }}
                   onRefund={async () => {
@@ -405,7 +434,7 @@ export function EventAttendees({
           opened={addModalOpened}
           onClose={() => setAddModalOpened(false)}
           onSubmit={async (attendee) => {
-            onAddAttendee(attendee);
+            await onAddAttendee(attendee);
             mutate("attendees");
           }}
         />

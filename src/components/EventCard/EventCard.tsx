@@ -61,6 +61,7 @@ export function EventCard({ event }: EventCardProps) {
       radius="md"
       h="100%"
       href={`/communities/${community}/events/${id}`}
+      data-testid="event-card"
     >
       <Stack gap="sm">
         {picture && (
