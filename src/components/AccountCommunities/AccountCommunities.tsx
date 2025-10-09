@@ -11,6 +11,7 @@ import {
 import { CommunityCard } from "../CommunityCard/CommunityCard";
 import { EmptyState } from "../EmptyState/EmptyState";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export interface Community {
   id: string;
@@ -37,7 +38,7 @@ function CommunityGrid({ communities }: { communities: Community[] }) {
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
       {communities.map((community) => (
-        <Box key={community.id}>
+        <Box key={community.community.id}>
           <CommunityCard {...community} />
         </Box>
       ))}

@@ -31,7 +31,7 @@ export function CommunitiesGrid({
               name={community.name}
               memberCount={community.memberCount}
               tags={community.tags}
-              imageSrc={community.imageSrc}
+              picture={community.imageSrc}
               pastEvents={community.pastEvents}
               futureEvents={community.futureEvents}
               // href={

@@ -13,7 +13,7 @@ const meta = {
     name: "Tech Innovators",
     memberCount: 2847,
     tags: ["Technology", "Innovation", "Startups"],
-    imageSrc: "./people.jpg",
+    picture: "./people.jpg",
     pastEvents: 45,
     futureEvents: 8,
   },
