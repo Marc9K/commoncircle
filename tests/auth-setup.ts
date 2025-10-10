@@ -13,14 +13,14 @@ function getTestPassword(index: number) {
 
 export async function authenticateUser(page: Page) {
   await page.goto("/auth/login");
-  await page.waitForSelector('[data-testid="email-login-form"]');
+  await page.waitForSelector('[data-testid="email-login-form"]', { timeout: 10000 });
 
-  await page.fill('[data-testid="email-input"]', getTestEmail(2));
-  await page.fill('[data-testid="password-input"]', getTestPassword(2));
+  await page.getByTestId('email-input').fill(getTestEmail(2));
+  await page.getByTestId('password-input').fill(getTestPassword(2));
 
-  await page.click('[data-testid="email-signin-button"]');
+  await page.getByTestId('email-signin-button').click();
 
-  await page.waitForURL("http://localhost:3000/communities");
+  await page.waitForURL("http://localhost:3000/communities", { timeout: 15000 });
 }
 
 export async function setupAuthState(page: Page) {

@@ -13,7 +13,7 @@ test.describe("CommunityEditForm", () => {
   test("should not submit when required fields are missing", async ({
     page,
   }) => {
-    await page.click('[data-testid="save-button"]');
+    await page.getByTestId('save-button').click();
 
     await expect(page).toHaveURL("/communities/new");
   });
@@ -21,16 +21,14 @@ test.describe("CommunityEditForm", () => {
   test("should submit successfully with all required fields filled", async ({
     page,
   }) => {
-    await page.fill(
-      '[data-testid="community-name-input"]',
+    await page.getByTestId('community-name-input').fill(
       `Test Community ${randomUUID()}`
     );
-    await page.fill(
-      '[data-testid="community-email-input"]',
+    await page.getByTestId('community-email-input').fill(
       "test@example.com"
     );
 
-    await page.click('[data-testid="save-button"]');
+    await page.getByTestId('save-button').click();
 
     await expect(page).not.toHaveURL("/communities/new");
     await expect(page).toHaveURL(/\/communities\/[a-zA-Z0-9-]+/);
@@ -39,32 +37,26 @@ test.describe("CommunityEditForm", () => {
   test("should submit successfully with all fields filled except image", async ({
     page,
   }) => {
-    await page.fill(
-      '[data-testid="community-name-input"]',
+    await page.getByTestId('community-name-input').fill(
       `Test Community ${randomUUID()}`
     );
-    await page.fill(
-      '[data-testid="community-email-input"]',
+    await page.getByTestId('community-email-input').fill(
       "test@example.com"
     );
-    await page.fill(
-      '[data-testid="community-description-input"]',
+    await page.getByTestId('community-description-input').fill(
       "A test community description"
     );
-    await page.fill(
-      '[data-testid="community-location-input"]',
+    await page.getByTestId('community-location-input').fill(
       "Manchester, UK"
     );
-    await page.fill(
-      '[data-testid="community-website-input"]',
+    await page.getByTestId('community-website-input').fill(
       "https://testcommunity.com"
     );
-    await page.fill(
-      '[data-testid="community-established-input"]',
+    await page.getByTestId('community-established-input').fill(
       "2024-01-01"
     );
 
-    await page.focus('[data-testid="community-type-select"]');
+    await page.getByTestId('community-type-select').focus();
     await page.keyboard.press("Space");
     await page.waitForSelector(
       '[role="option"]:has-text("Private - Requires approval")'
@@ -72,7 +64,7 @@ test.describe("CommunityEditForm", () => {
     await page.keyboard.press("ArrowDown");
     await page.keyboard.press("Enter");
 
-    await page.click('[data-testid="save-button"]');
+    await page.getByTestId('save-button').click();
 
     // await expect(page).not.toHaveURL("/communities/new");
     await expect(page).toHaveURL(/\/communities\/[a-zA-Z0-9-]+/);
