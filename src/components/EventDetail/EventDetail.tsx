@@ -204,7 +204,11 @@ function EventPrice({ event }: { event: EventDetailData }) {
   return (
     <Group gap="xs">
       <Text size="xl" fw={700} c={event.price == undefined ? "green" : "blue"}>
-        {event.price == undefined ? "Free" : `£${event.price}`}
+        {event.price == undefined
+          ? "Pay What You Can"
+          : event.price === 0
+          ? "Free"
+          : `£${event.price}`}
       </Text>
     </Group>
   );
@@ -425,7 +429,6 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   const [eventType, setEventType] = useState<"public" | "private">(
     event.public ? "public" : "private"
   );
-  const [payWhatYouCanAmount, setPayWhatYouCanAmount] = useState<number>(0);
 
   const supabase = createClient();
 
@@ -564,8 +567,6 @@ export function EventDetail({ event }: { event: EventDetailData }) {
                     isRegistered={isRegistered}
                     onRegister={handleRegister}
                     onUnregister={handleUnregister}
-                    payWhatYouCanAmount={payWhatYouCanAmount}
-                    onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
                   />
                 </Stack>
               </Card>
@@ -586,8 +587,6 @@ export function EventDetail({ event }: { event: EventDetailData }) {
               isRegistered={isRegistered}
               onRegister={handleRegister}
               onUnregister={handleUnregister}
-              payWhatYouCanAmount={payWhatYouCanAmount}
-              onPayWhatYouCanAmountChange={setPayWhatYouCanAmount}
             />
           </Stack>
 
