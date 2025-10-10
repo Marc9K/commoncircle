@@ -19,7 +19,6 @@ import { FcSettings, FcDeleteDatabase, FcLock, FcUnlock } from "react-icons/fc";
 interface EventSettingsProps {
   eventId: string | number;
   eventName: string;
-  isRegistrationOpen: boolean;
   eventType: "public" | "private";
   currentUserRole?:
     | "owner"
@@ -202,10 +201,8 @@ function DeleteEventSection({
 
 export function EventSettings({
   eventName,
-  isRegistrationOpen,
   eventType,
   currentUserRole,
-  onToggleRegistration,
   onChangeEventType,
   onDeleteEvent,
 }: EventSettingsProps) {
@@ -235,11 +232,6 @@ export function EventSettings({
   return (
     <Container size="md" py="xl">
       <Stack gap="lg">
-        <RegistrationSettings
-          isRegistrationOpen={isRegistrationOpen}
-          onToggleRegistration={onToggleRegistration}
-        />
-
         <EventTypeSettings
           eventType={eventType}
           onChangeEventType={onChangeEventType}

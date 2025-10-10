@@ -29,7 +29,7 @@ export function Account({
       <Stack gap="xl">
         <Title order={1}>Account</Title>
 
-        <Tabs defaultValue="settings" variant="outline">
+        <Tabs defaultValue="communities" variant="outline">
           <Tabs.List justify="flex-end">
             <Tabs.Tab value="communities">Communities</Tabs.Tab>
             <Tabs.Tab value="events">Events</Tabs.Tab>

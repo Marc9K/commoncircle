@@ -47,7 +47,7 @@ export interface EventDetailData {
     | "member"
     | null;
   attendees?: number;
-  eventType?: "public" | "private";
+  public?: boolean;
 }
 
 function formatEventDateTime(startDateTime: string, endDateTime?: string) {
@@ -429,9 +429,8 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   const [isRegistered, setIsRegistered] = useState<boolean>(
     event.isRegistered || false
   );
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState<boolean>(true);
   const [eventType, setEventType] = useState<"public" | "private">(
-    event.eventType ?? "public"
+    event.public ? "public" : "private"
   );
   const [payWhatYouCanAmount, setPayWhatYouCanAmount] = useState<number>(0);
 
@@ -527,27 +526,38 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       .eq("event", event.id);
   };
 
-  const handleToggleRegistration = (isOpen: boolean) => {
-    setIsRegistrationOpen(isOpen);
+  const handleChangeEventType = async (type: "public" | "private") => {
+    setEventType(type);
+    const { error } = await supabase
+      .from("Events")
+      .update({ public: type === "public" })
+      .eq("id", event.id);
+    if (error) {
+      console.error(error);
+    }
   };
 
-  const handleChangeEventType = (type: "public" | "private") => {
-    setEventType(type);
+  const handleDeleteEvent = async () => {
+    await supabase.from("Events").delete().eq("id", event.id);
+    // Navigate to community page after successful deletion
+    if (typeof window !== "undefined" && event.communityId) {
+      window.location.href = `/communities/${event.communityId}`;
+    }
   };
 
   const details = (
     <>
       <Variable at="md">
         <Grid>
-          <Grid.Col span={8}>
+          <Grid.Col span={7}>
             <Stack gap="lg">
               <EventTitle event={event} />
               <EventDescription event={event} />
             </Stack>
           </Grid.Col>
-          <Grid.Col span={4}>
+          <Grid.Col span={5}>
             <Stack gap="lg">
-              <Card withBorder radius="md" p="lg">
+              <Card withBorder radius="md" p="lg" w="100%">
                 <Stack gap="md">
                   <EventDateTime event={event} />
                   <Divider />
@@ -633,12 +643,10 @@ export function EventDetail({ event }: { event: EventDetailData }) {
               <EventSettings
                 eventId={event.id}
                 eventName={event.title}
-                isRegistrationOpen={isRegistrationOpen}
                 eventType={eventType}
                 currentUserRole={event.currentUserRole}
-                onToggleRegistration={handleToggleRegistration}
                 onChangeEventType={handleChangeEventType}
-                onDeleteEvent={() => {}}
+                onDeleteEvent={handleDeleteEvent}
               />
             </Tabs.Panel>
           </Tabs>
