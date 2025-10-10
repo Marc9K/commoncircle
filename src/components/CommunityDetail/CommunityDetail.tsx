@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { EventCard, EventCardData } from "@/components/EventCard/EventCard";
 import Variable from "@/components/Variable/Variable";
+import { Map } from "../Map/Map";
 import {
   AppShell,
   Stack,
@@ -15,6 +16,7 @@ import {
   Tabs,
   Grid,
   Badge,
+  Box,
 } from "@mantine/core";
 
 export interface CommunityDetailData {
@@ -147,6 +149,21 @@ function JoinButton({
   );
 }
 
+function CommunityLocation({ community }: { community: CommunityDetailData }) {
+  return (
+    <Stack gap="sm">
+      {community.location && (
+        <Text size="md" fw={500}>
+          📍 {community.location}
+        </Text>
+      )}
+      <Box>
+        <Map location={community.location} height="200px" zoom={13} />
+      </Box>
+    </Stack>
+  );
+}
+
 function CommunityDescription({
   community,
 }: {
@@ -198,6 +215,7 @@ export default function CommunityDetail({
               <CommunityTitle community={community} />
               <CommunityMeta community={community} />
               <CommunityDescription community={community} />
+              <CommunityLocation community={community} />
               <JoinButton
                 community={community}
                 isMember={isMember}
@@ -219,6 +237,7 @@ export default function CommunityDetail({
             onLeave={handleLeave}
           />
           <CommunityDescription community={community} />
+          <CommunityLocation community={community} />
           <CommunityMeta community={community} />
         </Stack>
       </Variable>

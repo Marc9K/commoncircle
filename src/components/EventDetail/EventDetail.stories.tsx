@@ -374,3 +374,54 @@ export const PayWhatYouCanEventMobile: Story = {
     },
   },
 };
+
+export const EventWithMap: Story = {
+  args: {
+    event: {
+      ...baseEvent,
+      title: "London Tech Meetup with Map",
+      location: "London Tech Hub, 1 Canary Wharf, London E14 5AB",
+      tags: ["London", "Tech", "Meetup", "Networking", "Map"],
+      description: `Join us for an exciting tech meetup in the heart of London's financial district.
+
+This event features:
+• Interactive tech demos
+• Networking with industry professionals
+• Lightning talks from local developers
+• Pizza and refreshments
+• Map location for easy navigation
+
+The venue is easily accessible by public transport and we'll have clear signage to help you find us.`,
+    },
+  },
+};
+
+export const EventWithoutMap: Story = {
+  args: {
+    event: {
+      ...baseEvent,
+      title: "Virtual Workshop - No Physical Location",
+      location: "Online Event (Zoom link will be provided)",
+      tags: ["Virtual", "Online", "Remote", "Workshop"],
+      description: `Join us for an online React workshop from the comfort of your own home.
+
+This virtual event includes:
+• Live coding sessions
+• Interactive Q&A
+• Screen sharing and collaboration
+• Digital resources and materials
+• Recording available after the event
+
+No physical location needed - just your computer and internet connection!`,
+    },
+  },
+};
+
+export const EventWithMapMobile: Story = {
+  ...EventWithMap,
+  globals: {
+    viewport: {
+      value: "mobile1",
+    },
+  },
+};

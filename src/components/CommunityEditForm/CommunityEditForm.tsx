@@ -2,6 +2,7 @@
 
 import {
   Stack,
+  Text,
   TextInput,
   Textarea,
   Select,
@@ -21,6 +22,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
 import { createClient } from "@/lib/supabase/client";
+import { Map } from "../Map/Map";
 
 interface CommunityEditFormProps {
   community?: CommunityDetailData;
@@ -289,6 +291,14 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     {...form.getInputProps("location")}
                     data-testid="community-location-input"
                   />
+                  {form.values.location && (
+                    <Stack gap="sm">
+                      <Text size="sm" fw={500}>
+                        Location Preview
+                      </Text>
+                      <Map location={form.values.location} height="300px" />
+                    </Stack>
+                  )}
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <TextInput

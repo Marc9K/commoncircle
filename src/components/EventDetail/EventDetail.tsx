@@ -17,9 +17,11 @@ import {
   NumberInput,
 } from "@mantine/core";
 import { useState } from "react";
+import Link from "next/link";
 import Variable from "../Variable/Variable";
 import { EventAttendees, Attendee } from "../EventAttendees/EventAttendees";
 import { EventSettings } from "../EventSettings/EventSettings";
+import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
 
 export interface EventDetailData {
@@ -92,6 +94,7 @@ function formatEventDateTime(startDateTime: string, endDateTime?: string) {
 }
 
 function EventImage({ event }: { event: EventDetailData }) {
+  if (!event.picture) return null;
   return (
     <Image
       src={event.picture}
@@ -137,26 +140,13 @@ function EventDateTime({ event }: { event: EventDetailData }) {
 function EventLocation({ event }: { event: EventDetailData }) {
   return (
     <Stack gap="sm">
-      <Group gap="xs">
+      {event.location && (
         <Text size="md" fw={500}>
           📍 {event.location}
         </Text>
-      </Group>
+      )}
       <Box>
-        <Box
-          style={{
-            height: 200,
-            backgroundColor: "#f8f9fa",
-            border: "1px solid #e9ecef",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#6c757d",
-          }}
-        >
-          <Text size="sm">Map will be displayed here</Text>
-        </Box>
+        <Map location={event.location} height="200px" zoom={13} />
       </Box>
     </Stack>
   );
@@ -385,7 +375,22 @@ function EventOrganizer({ event }: { event: EventDetailData }) {
         <Text fw={600} size="md">
           Organizer
         </Text>
-        <Text>{event.communityName}</Text>
+        <Text>
+          {event.communityId ? (
+            <Link
+              href={`/communities/${event.communityId}`}
+              style={{
+                color: "inherit",
+                textDecoration: "none",
+                fontWeight: "inherit",
+              }}
+            >
+              {event.communityName}
+            </Link>
+          ) : (
+            event.communityName
+          )}
+        </Text>
         <Group gap="xs">
           <Button
             size="xs"
@@ -558,7 +563,6 @@ export function EventDetail({ event }: { event: EventDetailData }) {
                   <EventDateTime event={event} />
                   <Divider />
                   <EventLocation event={event} />
-                  <Divider />
                   <EventPrice event={event} />
                   <Divider />
                   <EventCapacity event={event} />

@@ -19,6 +19,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
+import { Map } from "../Map/Map";
 
 export interface EventFormData {
   title: string;
@@ -215,6 +216,19 @@ export function EventForm({
               data-testid="event-location-input"
               {...form.getInputProps("location")}
             />
+
+            {form.values.location && (
+              <Stack gap="sm">
+                <Text size="sm" fw={500}>
+                  Location Preview
+                </Text>
+                <Map
+                  location={form.values.location}
+                  height="300px"
+                  showNoLocationMessage
+                />
+              </Stack>
+            )}
 
             <TagsInput
               label="Tags"
