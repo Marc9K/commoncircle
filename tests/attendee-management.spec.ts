@@ -59,19 +59,19 @@ async function createCommunityAndEvent(page: any) {
   await page.goto("/communities/new");
   await page.waitForSelector("form");
 
-  await page.fill('[data-testid="community-name-input"]', testCommunity.name);
-  await page.fill('[data-testid="community-email-input"]', testCommunity.email);
-  await page.fill('[data-testid="community-description-input"]', testCommunity.description!);
-  await page.fill('[data-testid="community-location-input"]', testCommunity.location!);
-  // await page.fill('[data-testid="community-website-input"]', testCommunity.website!);
-  await page.fill('[data-testid="community-established-input"]', testCommunity.established!);
+  await page.getByTestId('community-name-input').fill(testCommunity.name);
+  await page.getByTestId('community-email-input').fill(testCommunity.email);
+  await page.getByTestId('community-description-input').fill(testCommunity.description!);
+  await page.getByTestId('community-location-input').fill(testCommunity.location!);
+  // await page.getByTestId('community-website-input').fill(testCommunity.website!);
+  await page.getByTestId('community-established-input').fill(testCommunity.established!);
 
 
-  await page.click('[data-testid="save-button"]');
+  await page.getByTestId('save-button').click();
   
   // Wait for redirect to community page and extract community ID
   await expect(page).not.toHaveURL("/communities/new");
-  await expect(page).toHaveURL(/\/communities\/[a-zA-Z0-9-]+/);
+  await expect(page).toHaveURL(/\/communities\/[0-9]+/);
   const communityUrl = page.url();
   const communityId = communityUrl.split('/').pop();
   
@@ -79,18 +79,18 @@ async function createCommunityAndEvent(page: any) {
   await page.goto(`/communities/${communityId}/events/new`);
   await page.waitForSelector('[data-testid="event-title-input"]');
 
-  await page.fill('[data-testid="event-title-input"]', testEvent.title);
-  await page.fill('[data-testid="event-description-input"]', testEvent.description);
-  await page.fill('[data-testid="event-start-input"]', testEvent.start);
-  await page.fill('[data-testid="event-finish-input"]', testEvent.finish);
-  await page.fill('[data-testid="event-location-input"]', testEvent.location);
+  await page.getByTestId('event-title-input').fill(testEvent.title);
+  await page.getByTestId('event-description-input').fill(testEvent.description);
+  await page.getByTestId('event-start-input').fill(testEvent.start);
+  await page.getByTestId('event-finish-input').fill(testEvent.finish);
+  await page.getByTestId('event-location-input').fill(testEvent.location);
   
   // Set pricing type
-  await page.click('[data-testid="pricing-paid-tab"]');
-  await page.fill('[data-testid="event-price-input"]', testEvent.price!.toString());
-  await page.fill('[data-testid="event-capacity-input"]', testEvent.capacity!.toString());
+  await page.getByTestId('pricing-paid-tab').click();
+  await page.getByTestId('event-price-input').fill(testEvent.price!.toString());
+  await page.getByTestId('event-capacity-input').fill(testEvent.capacity!.toString());
 
-  await page.click('[data-testid="event-submit-button"]');
+  await page.getByTestId('event-submit-button').click();
   
   // Wait for redirect to community page
   // await expect(page).toHaveURL(`/communities/${communityId}/events/40`);
@@ -105,23 +105,23 @@ async function createCommunityAndEvent(page: any) {
 
 async function navigateToAttendeesTab(page: any) {
   // Click on the Attendees tab
-  await page.click('[data-testid="attendees-tab"]');
+  await page.getByTestId('attendees-tab').click();
   await page.waitForSelector('[data-testid="add-attendee-button"]');
 }
 
 async function addAttendee(page: any, name: string, email: string) {
   // Click Add Attendee button
-  await page.click('[data-testid="add-attendee-button"]');
+  await page.getByTestId('add-attendee-button').click();
   
   // Wait for modal to open
   await page.waitForSelector('[data-testid="attendee-name-input"]');
   
   // Fill in attendee details
-  await page.fill('[data-testid="attendee-name-input"]', name);
-  await page.fill('[data-testid="attendee-email-input"]', email);
+  await page.getByTestId('attendee-name-input').fill(name);
+  await page.getByTestId('attendee-email-input').fill(email);
   
   // Submit the form
-  await page.click('[data-testid="add-attendee-submit-button"]');
+  await page.getByTestId('add-attendee-submit-button').click();
   
   // Wait for modal to close
   await page.waitForSelector('[data-testid="add-attendee-button"]', { state: 'visible' });
@@ -201,7 +201,7 @@ test.describe("Attendee Management", () => {
     await attendeeCard.getByTestId('attendee-menu').click();
     
     // Click "Uncheck In" menu item
-    await page.click('[data-testid="uncheck-in-menu-item"]');
+    await page.getByTestId('uncheck-in-menu-item').click();
 
     // Verify "Checked In" badge disappears
     await expect(attendeeCard.locator('text=Checked In')).not.toBeVisible();
@@ -249,7 +249,7 @@ test.describe("Attendee Management", () => {
     await attendeeCard.getByTestId('attendee-menu').click();
     
     // Click "Refund" menu item
-    await page.click('[data-testid="refund-menu-item"]');
+    await page.getByTestId('refund-menu-item').click();
 
     // Verify badge changes from "Paid" to "Not paid"
     await expect(page.locator('text=Not paid')).toBeVisible();
@@ -272,7 +272,7 @@ test.describe("Attendee Management", () => {
     await attendeeCard.getByTestId('attendee-menu').click();
     
     // Click "Cancel" menu item
-    await page.click('[data-testid="cancel-menu-item"]');
+    await page.getByTestId('cancel-menu-item').click();
 
     // Verify attendee is removed from the list
     await expect(page.locator(`text=${attendeeName}`)).not.toBeVisible();
