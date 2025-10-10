@@ -106,16 +106,9 @@ function EventImage({ event }: { event: EventDetailData }) {
 
 function EventTitle({ event }: { event: EventDetailData }) {
   return (
-    <Stack gap={4}>
-      <Title order={1} size="h2">
-        {event.title}
-      </Title>
-      {event.communityName && (
-        <Text c="dimmed" size="sm">
-          Hosted by {event.communityName}
-        </Text>
-      )}
-    </Stack>
+    <Title order={1} size="h2">
+      {event.title}
+    </Title>
   );
 }
 

@@ -30,7 +30,6 @@ export interface EventFormData {
   tags: string[];
   price?: number;
   capacity?: number;
-  registrationDeadline?: string;
   isFree: boolean;
   isPayWhatYouCan: boolean;
 }
@@ -43,6 +42,19 @@ interface EventFormProps {
   isLoading?: boolean;
 }
 
+// Helper function to convert database datetime to HTML datetime-local format
+const formatDateTimeForInput = (dateTime: string | undefined): string => {
+  if (!dateTime) return "";
+  const date = new Date(dateTime);
+  // Format as YYYY-MM-DDTHH:MM for datetime-local input
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export function EventForm({
   initialData,
   onSubmit,
@@ -53,8 +65,8 @@ export function EventForm({
   const [pricingType, setPricingType] = useState<
     "free" | "paid" | "pay-what-you-can"
   >(() => {
-    if (initialData?.isFree) return "free";
-    if (initialData?.isPayWhatYouCan) return "pay-what-you-can";
+    if (initialData?.price === 0) return "free";
+    if (initialData?.price == null) return "pay-what-you-can";
     return "paid";
   });
 
@@ -62,14 +74,13 @@ export function EventForm({
     initialValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
-      start: initialData?.start || "",
-      finish: initialData?.finish || "",
+      start: formatDateTimeForInput(initialData?.start),
+      finish: formatDateTimeForInput(initialData?.finish),
       location: initialData?.location || "",
       picture: initialData?.picture || "",
       tags: initialData?.tags || [],
       price: initialData?.price,
       capacity: initialData?.capacity,
-      registrationDeadline: initialData?.registrationDeadline || "",
       isFree: initialData?.isFree ?? true,
       isPayWhatYouCan: initialData?.isPayWhatYouCan ?? false,
     },
