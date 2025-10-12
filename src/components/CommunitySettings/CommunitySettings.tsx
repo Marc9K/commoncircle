@@ -1,5 +1,6 @@
 "use client";
 
+import { createClient } from "@/lib/supabase/client";
 import {
   Stack,
   Card,
@@ -15,6 +16,8 @@ import {
   Select,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcEmptyTrash, FcHighPriority } from "react-icons/fc";
 
@@ -30,7 +33,10 @@ export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
     useDisclosure(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const supabase = createClient();
+  const router = useRouter();
+  const { id: communityId } = useParams();
   // Payment settings state
   const [paymentSettings, setPaymentSettings] = useState({
     stripeAccountId: "",
@@ -44,10 +50,21 @@ export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
 
   const handleDeleteCommunity = async () => {
     setIsDeleting(true);
-    setTimeout(() => {
+    console.log("Deleting community:", communityId);
+    try {
+      const { error } = await supabase
+        .from("communities")
+        .delete()
+        .eq("id", communityId);
       setIsDeleting(false);
+      if (error) {
+        throw error;
+      }
       closeDelete();
-    }, 2000);
+      router.push("/");
+    } catch (error) {
+      console.error("Error deleting community:", error);
+    }
   };
 
   const handleSavePaymentSettings = async () => {
@@ -153,7 +170,7 @@ export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
             placeholder="Type DELETE to confirm"
             onChange={(event) => {
               if (event.currentTarget.value === "DELETE") {
-                // Enable delete button
+                setDeleteConfirmation(event.currentTarget.value);
               }
             }}
           />
@@ -166,6 +183,7 @@ export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
               color="red"
               onClick={handleDeleteCommunity}
               loading={isDeleting}
+              disabled={deleteConfirmation !== "DELETE"}
             >
               Delete Community
             </Button>

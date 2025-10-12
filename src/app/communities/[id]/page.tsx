@@ -14,7 +14,8 @@ export default async function CommunityDetailPage({
   const { data: community, error } = await supabase
     .from("communities")
     .select("*")
-    .eq("id", id);
+    .eq("id", id)
+    .single();
 
   if (error) {
     return notFound();
@@ -63,7 +64,7 @@ export default async function CommunityDetailPage({
     <CommunityDetail
       community={
         {
-          ...community[0],
+          ...community,
           memberCount: count,
           isMember: circle != undefined,
           joinRequestPending: circle?.role && circle.role == undefined,
