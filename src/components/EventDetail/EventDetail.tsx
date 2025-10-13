@@ -604,7 +604,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     </>
   );
   return (
-    <Container size="md" py="xl">
+    <Container size="md" py="xl" mt={80}>
       <Stack gap="xl">
         <EventImage event={event} />
         {(event.currentUserRole === "owner" ||

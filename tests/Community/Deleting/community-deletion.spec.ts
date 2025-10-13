@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { authenticateUser } from "./auth-setup";
+import { authenticateUser } from "../../auth-setup";
 import { randomUUID } from "crypto";
 
 // Test data configuration
@@ -84,22 +84,18 @@ async function createCommunityAndEvent(page: any) {
   await page.getByTestId('event-finish-input').fill(testEvent.finish);
   await page.getByTestId('event-location-input').fill(testEvent.location);
   
-  // Add tags
   for (const tag of testEvent.tags) {
     await page.getByTestId('event-tags-input').fill(tag);
     await page.keyboard.press('Enter');
   }
   
-  // Set pricing type
   await page.getByTestId('pricing-free-tab').click();
   await page.getByTestId('event-capacity-input').fill(testEvent.capacity!.toString());
 
   await page.getByTestId('event-submit-button').click();
   
-  // Wait for redirect to event page
   await page.waitForURL(/\/communities\/[0-9-]+\/events\/[0-9-]+/);
   
-  // Extract event ID from URL
   const eventUrl = page.url();
   const eventId = eventUrl.split('/').pop();
   
@@ -107,62 +103,46 @@ async function createCommunityAndEvent(page: any) {
 }
 
 async function navigateToCommunitySettings(page: any, communityId: string) {
-  // Navigate to community management page
   await page.goto(`/communities/${communityId}/manage`);
   
-  // Wait for the page to load
   await page.waitForSelector('[role="tablist"]');
   
-  // Click on the Settings tab
   await page.getByRole('tab', { name: 'Settings' }).click();
   
-  // Wait for settings content to load
   await page.waitForSelector('text=Danger Zone');
 }
 
 async function verifyCommunityExists(page: any, communityId: string, communityName: string) {
-  // Navigate to community page
   await page.goto(`/communities/${communityId}`);
   
-  // Verify community name is displayed
   await expect(page.getByRole('heading', { name: communityName })).toBeVisible();
   
-  // Verify community description is displayed
   await expect(page.getByText(testCommunity.description!).first()).toBeVisible();
 }
 
 async function verifyCommunityDeleted(page: any, communityId: string) {
-  // Try to navigate to the community page - should get 404
   await page.goto(`/communities/${communityId}`);
   
-  // Should show 404 page
   await expect(page.getByText('404').first()).toBeVisible();
   await expect(page.getByText('This page could not be found').first()).toBeVisible();
 }
 
 async function verifyEventDeleted(page: any, communityId: string, eventId: string) {
-  // Try to navigate to the event page - should get 404
   await page.goto(`/communities/${communityId}/events/${eventId}`);
   
-  // Should show 404 page
   await expect(page.getByText('404').first()).toBeVisible();
   await expect(page.getByText('This page could not be found').first()).toBeVisible();
 }
 
 async function performCommunityDeletion(page: any) {
-  // Click the "Delete Community" button
   await page.getByRole('button', { name: 'Delete Community' }).click();
   
-  // Wait for the deletion modal to appear
   await page.waitForSelector('text=This action cannot be undone');
   
-  // Type "DELETE" in the confirmation input
   await page.getByPlaceholder('Type DELETE to confirm').fill('DELETE');
   
-  // Click the final delete button
   await page.getByRole('button', { name: 'Delete Community' }).last().click();
   
-  // Wait for the deletion to complete and redirect
   await page.waitForURL('/');
 }
 
@@ -187,26 +167,19 @@ test.describe("Community Deletion", () => {
   });
 
   test("should create, verify existence, delete, and verify deletion of community", async ({ page }) => {
-    // Step 1: Verify community exists and is accessible
     await verifyCommunityExists(page, communityId, testCommunity.name);
     
-    // Step 2: Navigate to community settings
     await navigateToCommunitySettings(page, communityId);
     
-    // Step 3: Verify we're on the settings page
     await expect(page.getByText('Danger Zone').first()).toBeVisible();
     await expect(page.getByText('Delete Community').first()).toBeVisible();
     
-    // Step 4: Perform community deletion
     await performCommunityDeletion(page);
     
-    // Step 5: Verify we're redirected to home page
     await expect(page).toHaveURL('/');
     
-    // Step 6: Verify community is deleted and no longer accessible
     await verifyCommunityDeleted(page, communityId);
     
-    // Step 7: Verify associated event is also deleted
     await verifyEventDeleted(page, communityId, eventId);
   });
 

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { authenticateUser } from "./auth-setup";
+import { authenticateUser } from "../../auth-setup";
 import { randomUUID } from "crypto";
 
 test.describe("CommunityEditForm", () => {

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { authenticateUser } from "./auth-setup";
+import { authenticateUser } from "../../auth-setup";
 import { randomUUID } from "crypto";
 
 // Test data configuration
@@ -127,7 +127,7 @@ async function addAttendee(page: any, name: string, email: string) {
   await page.waitForSelector('[data-testid="add-attendee-button"]', { state: 'visible' });
 }
 
-test.describe("Attendee Management", () => {
+test.describe("Attendee Updates", () => {
   let communityId: string;
   let eventId: string;
 
@@ -149,37 +149,23 @@ test.describe("Attendee Management", () => {
     await navigateToAttendeesTab(page);
   });
 
-  test("should add a new attendee successfully", async ({ page }) => {
-    const attendeeName = `Test Attendee ${randomUUID()}`;
-    const attendeeEmail = `testattendee${randomUUID()}@example.com`;
-
-    await addAttendee(page, attendeeName, attendeeEmail);
-
-    // Verify attendee appears in the list
-    await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
-    await expect(page.locator(`text=${attendeeEmail}`)).toBeVisible();
-    
-    // Verify attendee has "Pending payment" badge
-    await expect(page.locator('text=Not paid')).toBeVisible();
-  });
-
   test("should check in an attendee", async ({ page }) => {
     const attendeeName = `Test Attendee ${randomUUID()}`;
     const attendeeEmail = `testattendee${randomUUID()}@example.com`;
 
     await addAttendee(page, attendeeName, attendeeEmail);
 
-    // Wait for attendee to appear in the list
+
     await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
 
-    // Find the attendee card and click Check In button
+
     const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
     await attendeeCard.getByTestId(`check-in-button`).click();
 
-    // Verify "Checked In" badge appears
+
     await expect(page.locator('text=Checked In')).toBeVisible();
     
-    // Verify "Check In" button is hidden
+
     await expect(attendeeCard.getByTestId('check-in-button')).not.toBeVisible();
   });
 
@@ -189,24 +175,19 @@ test.describe("Attendee Management", () => {
 
     await addAttendee(page, attendeeName, attendeeEmail);
 
-    // Wait for attendee to appear in the list
     await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
 
-    // Check in the attendee first
     const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
     await attendeeCard.getByTestId('check-in-button').click();
     await expect(page.locator('text=Checked In')).toBeVisible();
 
-    // Click the menu button (3-dot menu)
+
     await attendeeCard.getByTestId('attendee-menu').click();
     
-    // Click "Uncheck In" menu item
     await page.getByTestId('uncheck-in-menu-item').click();
 
-    // Verify "Checked In" badge disappears
     await expect(attendeeCard.locator('text=Checked In')).not.toBeVisible();
     
-    // Verify "Check In" button reappears
     await expect(attendeeCard.getByTestId('check-in-button')).toBeVisible();
   });
 
@@ -216,17 +197,13 @@ test.describe("Attendee Management", () => {
 
     await addAttendee(page, attendeeName, attendeeEmail);
 
-    // Wait for attendee to appear in the list
     await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
 
-    // Find the attendee card and click Paid button
     const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
     await attendeeCard.getByTestId('mark-paid-button').click();
 
-    // // Verify badge changes to "Paid"
     // await expect(page.locator('text=Paid')).toBeVisible();
     
-    // Verify "Paid" button disappears
     await expect(attendeeCard.getByTestId('mark-paid-button')).not.toBeVisible();
   });
 
@@ -236,25 +213,19 @@ test.describe("Attendee Management", () => {
 
     await addAttendee(page, attendeeName, attendeeEmail);
 
-    // Wait for attendee to appear in the list
     await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
 
-    // Mark as paid first
     const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
     await attendeeCard.getByTestId('mark-paid-button').click();
     
     await expect(attendeeCard.getByTestId('mark-paid-button')).not.toBeVisible();
 
-    // Click the menu button
     await attendeeCard.getByTestId('attendee-menu').click();
     
-    // Click "Refund" menu item
     await page.getByTestId('refund-menu-item').click();
 
-    // Verify badge changes from "Paid" to "Not paid"
     await expect(page.locator('text=Not paid')).toBeVisible();
     
-    // Verify "Paid" button reappears
     await expect(attendeeCard.getByTestId('mark-paid-button')).toBeVisible();
   });
 
@@ -264,17 +235,13 @@ test.describe("Attendee Management", () => {
 
     await addAttendee(page, attendeeName, attendeeEmail);
 
-    // Verify attendee is in the list
     await expect(page.locator(`text=${attendeeName}`)).toBeVisible();
 
-    // Find the attendee card and click menu button
     const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
     await attendeeCard.getByTestId('attendee-menu').click();
     
-    // Click "Cancel" menu item
     await page.getByTestId('cancel-menu-item').click();
 
-    // Verify attendee is removed from the list
     await expect(page.locator(`text=${attendeeName}`)).not.toBeVisible();
   });
 });

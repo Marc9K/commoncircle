@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { authenticateUser } from "./auth-setup";
+import { authenticateUser } from "../../auth-setup";
 
-// Test data configuration
 interface EventFormData {
   title?: string;
   description?: string;
@@ -14,14 +13,13 @@ interface EventFormData {
   pricingType?: "free" | "paid" | "pay-what-you-can";
 }
 
-// Generate future dates for testing
 const getFutureDate = (daysFromNow: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromNow);
   return date.toISOString().slice(0, 16); // Format for datetime-local input
 };
 
-// Test data arrays
+
 const requiredFields: EventFormData[] = [
   {
     title: "Test Event",
@@ -122,7 +120,7 @@ const incompleteFields: EventFormData[] = [
 test.describe("EventForm", () => {
   test.beforeEach(async ({ page }) => {
     await authenticateUser(page);
-    // Navigate to a community's new event page (assuming community ID 1 exists)
+    // Navigate to a community's new event page (assuming community ID 36 exists)
     await page.goto("/communities/36/events/new");
     await page.waitForSelector('[data-testid="event-title-input"]');
   });
@@ -130,7 +128,6 @@ test.describe("EventForm", () => {
   test("should not submit when required fields are missing", async ({ page }) => {
     await page.click('[data-testid="event-submit-button"]');
     
-    // Should stay on the same page
     await expect(page).toHaveURL(/\/communities\/36\/events\/new/);
   });
 
@@ -143,16 +140,13 @@ test.describe("EventForm", () => {
     await page.getByTestId('event-finish-input').fill(testData.finish!);
     await page.getByTestId('event-location-input').fill(testData.location!);
     
-    // Ensure free pricing is selected
     await page.getByTestId('pricing-free-tab').click();
     
     await page.getByTestId('event-submit-button').click();
     
-    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
-  // Test all complete field combinations
   allFields.forEach((testData, index) => {
     test(`should submit successfully with all fields filled - scenario ${index + 1}`, async ({ page }) => {
       await page.getByTestId('event-title-input').fill(testData.title!);
@@ -161,7 +155,6 @@ test.describe("EventForm", () => {
       await page.getByTestId('event-finish-input').fill(testData.finish!);
       await page.getByTestId('event-location-input').fill(testData.location!);
       
-      // Add tags if provided
       if (testData.tags) {
         for (const tag of testData.tags) {
           await page.getByTestId('event-tags-input').fill(tag);
@@ -169,7 +162,6 @@ test.describe("EventForm", () => {
         }
       }
       
-      // Set pricing type
       if (testData.pricingType === "paid") {
         await page.getByTestId('pricing-paid-tab').click();
         if (testData.price) {
@@ -181,22 +173,18 @@ test.describe("EventForm", () => {
         await page.getByTestId('pricing-free-tab').click();
       }
       
-      // Set capacity if provided
       if (testData.capacity) {
         await page.getByTestId('event-capacity-input').fill(testData.capacity.toString());
       }
       
       await page.getByTestId('event-submit-button').click();
       
-      // Should redirect to community page
       await expect(page).toHaveURL(/\/communities\/36/);
     });
   });
 
-  // Test incomplete field scenarios
   incompleteFields.forEach((testData, index) => {
     test(`should not submit with incomplete fields - scenario ${index + 1}`, async ({ page }) => {
-      // Fill only the provided fields
       if (testData.title) {
         await page.getByTestId('event-title-input').fill(testData.title);
       }
@@ -213,7 +201,6 @@ test.describe("EventForm", () => {
         await page.getByTestId('event-location-input').fill(testData.location);
       }
       
-      // Set pricing type if provided
       if (testData.pricingType) {
         if (testData.pricingType === "paid") {
           await page.getByTestId('pricing-paid-tab').click();
@@ -226,7 +213,6 @@ test.describe("EventForm", () => {
       
       await page.getByTestId('event-submit-button').click();
       
-      // Should stay on the same page due to validation errors
       await expect(page).toHaveURL(/\/communities\/36\/events\/new/);
     });
   });
@@ -248,17 +234,14 @@ test.describe("EventForm", () => {
     await page.getByTestId('event-finish-input').fill(testData.finish);
     await page.getByTestId('event-location-input').fill(testData.location);
     
-    // Select paid pricing
     await page.getByTestId('pricing-paid-tab').click();
     
-    // Price input should be visible
     await expect(page.getByTestId('event-price-input')).toBeVisible();
     
     await page.getByTestId('event-price-input').fill(testData.price.toString());
     
     await page.getByTestId('event-submit-button').click();
     
-    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
@@ -278,15 +261,12 @@ test.describe("EventForm", () => {
     await page.getByTestId('event-finish-input').fill(testData.finish);
     await page.getByTestId('event-location-input').fill(testData.location);
     
-    // Select pay-what-you-can pricing
     await page.getByTestId('pricing-pay-what-you-can-tab').click();
     
-    // Price input should not be visible
     await expect(page.getByTestId('event-price-input')).not.toBeVisible();
     
     await page.getByTestId('event-submit-button').click();
     
-    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
@@ -307,7 +287,6 @@ test.describe("EventForm", () => {
     await page.getByTestId('event-finish-input').fill(testData.finish);
     await page.getByTestId('event-location-input').fill(testData.location);
     
-    // Add tags
     for (const tag of testData.tags) {
       await page.getByTestId('event-tags-input').fill(tag);
       await page.keyboard.press('Enter');
@@ -315,7 +294,6 @@ test.describe("EventForm", () => {
     
     await page.getByTestId('event-submit-button').click();
     
-    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
@@ -339,7 +317,6 @@ test.describe("EventForm", () => {
     
     await page.getByTestId('event-submit-button').click();
     
-    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
@@ -352,7 +329,6 @@ test.describe("EventForm", () => {
     
     await page.getByTestId('event-cancel-button').click();
     
-    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 });
