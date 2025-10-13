@@ -342,6 +342,7 @@ function RegistrationButton({
           typeof window !== "undefined" &&
           (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
         }
+        data-testid="manage-event-button"
       >
         Manage Event
       </Button>

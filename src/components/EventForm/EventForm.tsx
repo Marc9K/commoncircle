@@ -16,9 +16,12 @@ import {
   FileInput,
   Image,
   Tabs,
+  Modal,
+  Alert,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { Map } from "../Map/Map";
 
 export interface EventFormData {
@@ -39,6 +42,7 @@ interface EventFormProps {
   initialData?: Partial<EventFormData>;
   onSubmit: (data: EventFormData) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   isEditing?: boolean;
   isLoading?: boolean;
 }
@@ -60,7 +64,7 @@ export function EventForm({
   initialData,
   onSubmit,
   onCancel,
-  isEditing = false,
+  onDelete,
   isLoading = false,
 }: EventFormProps) {
   const [pricingType, setPricingType] = useState<
@@ -111,6 +115,9 @@ export function EventForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [, setUploadError] = useState<string | null>(null);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const params = useParams<{ eventId: string }>();
+  const eventId = params?.eventId;
 
   const handleImageChange = (file: File | null) => {
     if (file) {
@@ -217,7 +224,7 @@ export function EventForm({
               {...form.getInputProps("location")}
             />
 
-            {form.values.location && (
+            {form.values.location && !deleteModalOpened && (
               <Stack gap="sm">
                 <Text size="sm" fw={500}>
                   Location Preview
@@ -318,25 +325,76 @@ export function EventForm({
               />
             </Stack>
 
-            <Group justify="flex-end" gap="md">
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                data-testid="event-cancel-button"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                loading={isLoading}
-                data-testid="event-submit-button"
-              >
-                {isEditing ? "Update Event" : "Create Event"}
-              </Button>
+            <Group justify="space-between" gap="md">
+              {eventId && (
+                <Button
+                  color="red"
+                  variant="outline"
+                  onClick={() => setDeleteModalOpened(true)}
+                  data-testid="event-delete-button"
+                >
+                  Delete Event
+                </Button>
+              )}
+              <Group gap="md" style={{ marginLeft: eventId ? "auto" : "0" }}>
+                <Button
+                  variant="outline"
+                  onClick={onCancel}
+                  data-testid="event-cancel-button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  loading={isLoading}
+                  data-testid="event-submit-button"
+                >
+                  {eventId ? "Update Event" : "Create Event"}
+                </Button>
+              </Group>
             </Group>
           </Stack>
         </form>
       </Stack>
+
+      <Modal
+        opened={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        title="Delete Event"
+        centered
+      >
+        <Stack gap="md">
+          <Alert color="red" title="Warning">
+            This action cannot be undone. This will permanently delete the event
+            and all associated data.
+          </Alert>
+
+          <Text size="sm">
+            Are you sure you want to delete this event? This action cannot be
+            undone.
+          </Text>
+
+          <Group justify="flex-end" gap="sm">
+            <Button
+              variant="subtle"
+              onClick={() => setDeleteModalOpened(false)}
+              data-testid="event-cancel-delete-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              color="red"
+              onClick={() => {
+                onDelete?.();
+                setDeleteModalOpened(false);
+              }}
+              data-testid="confirm-delete-button"
+            >
+              Delete Event
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Container>
   );
 }

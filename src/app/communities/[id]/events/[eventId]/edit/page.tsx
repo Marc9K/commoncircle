@@ -42,6 +42,20 @@ export default function EditEventPage() {
     router.push(`/communities/${communityId}/events/${eventId}`);
   };
 
+  const handleDelete = async () => {
+    if (!eventId) return;
+
+    const { error } = await supabase.from("Events").delete().eq("id", eventId);
+
+    if (error) {
+      console.error("Error deleting event:", error);
+      return;
+    }
+
+    // Navigate back to community page after successful deletion
+    router.push(`/communities/${communityId}`);
+  };
+
   if (!eventData) {
     return (
       <Container mt={120}>
@@ -55,6 +69,7 @@ export default function EditEventPage() {
       <EventForm
         initialData={eventData}
         onCancel={handleCancel}
+        onDelete={handleDelete}
         isEditing={true}
         isLoading={isLoading}
         onSubmit={async (data: EventFormData) => {

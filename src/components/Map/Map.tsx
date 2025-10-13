@@ -134,9 +134,7 @@ export function Map({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={[coordinates.lat, coordinates.lon]}>
-          <Popup>{location}</Popup>
-        </Marker>
+        <Marker position={[coordinates.lat, coordinates.lon]} />
       </MapContainer>
     </div>
   );
