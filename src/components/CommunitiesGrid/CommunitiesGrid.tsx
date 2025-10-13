@@ -21,25 +21,13 @@ export function CommunitiesGrid({
   maxCommunities = 10,
 }: CommunitiesGridProps) {
   const displayCommunities = communities.slice(0, maxCommunities);
-
+  console.log(displayCommunities);
   return (
     <Stack gap="lg">
       <Grid>
         {displayCommunities.map((community, index) => (
           <Grid.Col key={index} span={{ base: 12, sm: 6, md: 4 }}>
-            <CommunityCard
-              name={community.name}
-              memberCount={community.memberCount}
-              tags={community.tags}
-              picture={community.imageSrc}
-              pastEvents={community.pastEvents}
-              futureEvents={community.futureEvents}
-              // href={
-              //   community.id !== undefined
-              //     ? `/communities/${community.id}`
-              //     : undefined
-              // }
-            />
+            <CommunityCard community={community} />
           </Grid.Col>
         ))}
       </Grid>

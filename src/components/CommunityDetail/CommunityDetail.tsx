@@ -18,6 +18,7 @@ import {
   Badge,
   Box,
 } from "@mantine/core";
+import { createClient } from "@/lib/supabase/client";
 
 export interface CommunityDetailData {
   id: string | number;
@@ -43,6 +44,7 @@ export interface CommunityDetailData {
     | null;
 }
 function CommunityImage({ community }: { community: CommunityDetailData }) {
+  if (!community.picture) return null;
   return (
     <Image
       src={community.picture}
@@ -195,7 +197,17 @@ export default function CommunityDetail({
     community.joinRequestPending || false
   );
 
-  const handleJoinRequest = () => {
+  const handleJoinRequest = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("Circles")
+      .insert({ member: member.id, community: community.id })
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+    }
     if (community.public) {
       setIsMember(true);
     } else {

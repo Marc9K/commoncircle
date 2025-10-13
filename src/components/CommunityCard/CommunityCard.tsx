@@ -35,6 +35,7 @@ export function CommunityCard({
         .select("member(count)")
         .eq("community", id)
         .single();
+      console.log(count);
       setMemberCount(count);
     } catch (error) {
       console.error(error);
