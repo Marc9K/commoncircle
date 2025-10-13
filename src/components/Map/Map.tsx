@@ -100,22 +100,7 @@ export function Map({
   }, [location]);
 
   if (isLoading) {
-    return (
-      <div
-        style={{
-          height,
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f8f9fa",
-          border: "1px solid #e9ecef",
-          borderRadius: "8px",
-        }}
-      >
-        <div>Loading map...</div>
-      </div>
-    );
+    return null;
   }
 
   if (error || !coordinates) {

@@ -8,9 +8,13 @@ export default function Variable({
   at: MantineBreakpoint;
 }) {
   return (
-    <Flex>
-      <Flex visibleFrom={at}>{children[0]}</Flex>
-      <Flex hiddenFrom={at}>{children[1]}</Flex>
+    <Flex w="100%">
+      <Flex w="100%" visibleFrom={at}>
+        {children[0]}
+      </Flex>
+      <Flex w="100%" hiddenFrom={at}>
+        {children[1]}
+      </Flex>
     </Flex>
   );
 }

@@ -550,7 +550,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   const details = (
     <>
       <Variable at="md">
-        <Grid>
+        <Grid w="100%">
           <Grid.Col span={7}>
             <Stack gap="lg">
               <EventTitle event={event} />
