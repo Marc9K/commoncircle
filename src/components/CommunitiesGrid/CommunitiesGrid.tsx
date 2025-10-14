@@ -18,9 +18,11 @@ interface CommunitiesGridProps {
 
 export function CommunitiesGrid({
   communities,
-  maxCommunities = 10,
+  maxCommunities,
 }: CommunitiesGridProps) {
-  const displayCommunities = communities.slice(0, maxCommunities);
+  const displayCommunities = maxCommunities
+    ? communities.slice(0, maxCommunities)
+    : communities;
   console.log(displayCommunities);
   return (
     <Stack gap="lg">

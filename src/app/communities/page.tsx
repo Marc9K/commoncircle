@@ -24,7 +24,6 @@ interface Community {
 }
 
 export default function CommunitiesPage() {
-  const [search, setSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("popular");
 
@@ -35,7 +34,9 @@ export default function CommunitiesPage() {
   useEffect(() => {
     supabase
       .from("communities")
-      .select("*")
+      .select(
+        "id, name, languages, created_at, picture, description, email, website, established, location, public, Circles(count), Events(count)"
+      )
       .then(({ data, error }) => {
         if (error) {
           console.error(error);
@@ -51,36 +52,27 @@ export default function CommunitiesPage() {
     return Array.from(tags).sort();
   }, [communities]);
 
-  const filtered = communities;
-
-  useMemo(() => {
+  const filtered = useMemo(() => {
     let result = communities;
-
-    if (search.trim()) {
-      const term = search.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(term) ||
-          c.tags.some((t) => t.toLowerCase().includes(term))
-      );
-    }
 
     if (selectedTags.length > 0) {
       result = result.filter((c) =>
-        selectedTags.every((t) => c.tags.includes(t))
+        selectedTags.every((t) => c.languages?.includes(t))
       );
     }
 
     if (sortBy === "popular") {
-      result = [...result].sort((a, b) => b.memberCount - a.memberCount);
-    } else if (sortBy === "upcoming") {
-      result = [...result].sort((a, b) => b.futureEvents - a.futureEvents);
-    } else if (sortBy === "recent") {
-      result = [...result].sort((a, b) => b.pastEvents - a.pastEvents);
+      result = [...result].sort(
+        (a, b) => a.Circles?.[0]?.count - b.Circles?.[0]?.count
+      );
+    } else if (sortBy === "eventful") {
+      result = [...result].sort(
+        (a, b) => b.Events?.[0]?.count - a.Events?.[0]?.count
+      );
     }
-
+    console.log("result", result);
     return result;
-  }, [communities, search, selectedTags, sortBy]);
+  }, [communities, selectedTags, sortBy]);
 
   return (
     <Container mt={100}>
@@ -104,8 +96,7 @@ export default function CommunitiesPage() {
               onChange={setSortBy}
               data={[
                 { value: "popular", label: "Most members" },
-                { value: "upcoming", label: "Most upcoming events" },
-                { value: "recent", label: "Most past events" },
+                { value: "eventful", label: "Most events" },
               ]}
               w={{ base: "100%", sm: 220 }}
             />
@@ -114,7 +105,6 @@ export default function CommunitiesPage() {
             <Button
               variant="light"
               onClick={() => {
-                setSearch("");
                 setSelectedTags([]);
                 setSortBy("popular");
               }}
