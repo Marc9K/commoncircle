@@ -23,6 +23,7 @@ import { EventAttendees, Attendee } from "../EventAttendees/EventAttendees";
 import { EventSettings } from "../EventSettings/EventSettings";
 import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
+import { notifications } from "@mantine/notifications";
 
 export interface EventDetailData {
   id: string | number;
@@ -234,9 +235,7 @@ function EventCapacity({ event }: { event: EventDetailData }) {
         Capacity:
       </Text>
       <Group gap="xs">
-        <Text size="sm">
-          {event.capacity - (event.attendees ?? 0)} avaliable
-        </Text>
+        <Text size="sm">{spotsLeft} avaliable</Text>
         {spotsLeft === 0 && (
           <Badge color="red" variant="light" size="sm">
             Event Full
@@ -333,21 +332,19 @@ function RegistrationButton({
     );
   }
 
-  if (isManager) {
-    return (
-      <Button
-        variant="filled"
-        color="blue"
-        onClick={() =>
-          typeof window !== "undefined" &&
-          (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
-        }
-        data-testid="manage-event-button"
-      >
-        Manage Event
-      </Button>
-    );
-  }
+  const manageButton = (
+    <Button
+      variant="filled"
+      color="blue"
+      onClick={() =>
+        typeof window !== "undefined" &&
+        (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
+      }
+      data-testid="manage-event-button"
+    >
+      Manage Event
+    </Button>
+  );
 
   if (event.payWhatYouCan && onPayWhatYouCanAmountChange) {
     return (
@@ -357,15 +354,19 @@ function RegistrationButton({
           amount={payWhatYouCanAmount || 0}
           onAmountChange={onPayWhatYouCanAmountChange}
         />
-        <Button onClick={onRegister}>Pay £{payWhatYouCanAmount || 0}</Button>
+        <Button onClick={onRegister}>Pay £{payWhatYouCanAmount || 1}</Button>
+        {isManager && manageButton}
       </Stack>
     );
   }
 
   return (
-    <Button onClick={onRegister}>
-      {event.price === 0 ? "Attend" : `Purchase`}
-    </Button>
+    <Stack gap="md">
+      <Button onClick={onRegister}>
+        {event.price === 0 ? "Attend" : `Purchase`}
+      </Button>
+      {isManager && manageButton}
+    </Stack>
   );
 }
 
@@ -470,6 +471,11 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     });
     if (error) {
       console.error(error);
+      notifications.show({
+        title: "Error",
+        message: "Failed to secure your spot.",
+        color: "red",
+      });
     } else {
       setIsRegistered(true);
     }
