@@ -16,7 +16,7 @@ import {
   Tabs,
   NumberInput,
 } from "@mantine/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Variable from "../Variable/Variable";
 import { EventAttendees, Attendee } from "../EventAttendees/EventAttendees";
@@ -364,7 +364,7 @@ function RegistrationButton({
 
   return (
     <Button onClick={onRegister}>
-      {event.price === undefined ? "Attend" : `Purchase`}
+      {event.price === 0 ? "Attend" : `Purchase`}
     </Button>
   );
 }
@@ -435,15 +435,57 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   const [eventType, setEventType] = useState<"public" | "private">(
     event.public ? "public" : "private"
   );
+  const [memberId, setMemberId] = useState<number | null>(null);
 
   const supabase = createClient();
 
-  const handleRegister = () => {
-    setIsRegistered(true);
+  useEffect(() => {
+    const fetchMember = async () => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError) {
+        console.error(userError);
+        return null;
+      }
+      const { data: member, error: memberError } = await supabase
+        .from("Members")
+        .select("id")
+        .eq("uid", user.id)
+        .single();
+      if (memberError) {
+        console.error(memberError);
+        return null;
+      }
+      setMemberId(member.id);
+    };
+    fetchMember();
+  }, []);
+
+  const handleRegister = async () => {
+    const { error } = await supabase.from("Attendees").insert({
+      event: event.id,
+      member: memberId,
+    });
+    if (error) {
+      console.error(error);
+    } else {
+      setIsRegistered(true);
+    }
   };
 
-  const handleUnregister = () => {
-    setIsRegistered(false);
+  const handleUnregister = async () => {
+    const { error } = await supabase
+      .from("Attendees")
+      .delete()
+      .eq("member", memberId)
+      .eq("event", event.id);
+    if (error) {
+      console.error(error);
+    } else {
+      setIsRegistered(false);
+    }
   };
 
   const handleCheckIn = async (
