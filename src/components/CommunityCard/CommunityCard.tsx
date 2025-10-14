@@ -1,8 +1,8 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { Card, Text, Title, Image, Group, Badge, Stack } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { Card, Text, Title, Image, Group, Stack } from "@mantine/core";
+import { useEffect, useState, useCallback } from "react";
 
 interface CommunityCardProps {
   role: string;
@@ -14,7 +14,6 @@ interface CommunityCardProps {
 }
 
 export function CommunityCard({
-  role,
   community: { id, name, picture },
 }: CommunityCardProps) {
   const supabase = createClient();
@@ -23,9 +22,9 @@ export function CommunityCard({
   const [pastEvents, setPastEvents] = useState(0);
   const [futureEvents, setFutureEvents] = useState(0);
 
-  const fetchMemberCount = async () => {
+  const fetchMemberCount = useCallback(async () => {
     try {
-      const { data, error: memberCountError } = await supabase
+      const { data } = await supabase
         .from("Circles")
         .select("member(count)")
         .eq("community", id)
@@ -36,30 +35,30 @@ export function CommunityCard({
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [supabase, id]);
 
-  const fetchPastEvents = async () => {
-    const { data: pastEvents, error: pastEventsError } = await supabase
+  const fetchPastEvents = useCallback(async () => {
+    const { data: pastEvents } = await supabase
       .from("Events")
       .select("start, community(id)")
       .lte("start", new Date().toISOString())
       .eq("community", id);
     setPastEvents(pastEvents?.length || 0);
-  };
+  }, [supabase, id]);
 
-  const fetchFutureEvents = async () => {
-    const { data: futureEvents, error: futureEventsError } = await supabase
+  const fetchFutureEvents = useCallback(async () => {
+    const { data: futureEvents } = await supabase
       .from("Events")
       .select("start, community(id)")
       .gt("start", new Date().toISOString())
       .eq("community", id);
     setFutureEvents(futureEvents?.length || 0);
-  };
+  }, [supabase, id]);
   useEffect(() => {
     fetchMemberCount();
     fetchPastEvents();
     fetchFutureEvents();
-  }, [id]);
+  }, [id, fetchMemberCount, fetchPastEvents, fetchFutureEvents]);
 
   // const { data: memberCount, error: memberCountError } = await supabase
   //   .from("Circles")

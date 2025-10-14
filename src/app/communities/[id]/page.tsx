@@ -38,7 +38,7 @@ export default async function CommunityDetailPage({
     return notFound();
   }
 
-  const { data: circle, error: circleError } = await supabase
+  const { data: circle } = await supabase
     .from("Circles")
     .select("*")
     .eq("community", id)

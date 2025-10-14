@@ -1,8 +1,7 @@
 "use client";
 
-import { Header } from "@/components/header/Header";
 import { EventForm, EventFormData } from "@/components/EventForm/EventForm";
-import { AppShell, Container } from "@mantine/core";
+import { Container } from "@mantine/core";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -10,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function EditEventPage() {
   const params = useParams<{ id: string; eventId: string }>();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [eventData, setEventData] = useState<Partial<EventFormData> | null>(
     null
   );
@@ -32,7 +31,7 @@ export default function EditEventPage() {
       setEventData(event);
     };
     fetchEvent();
-  }, [eventId]);
+  }, [eventId, supabase]);
 
   if (!communityId || !eventId) {
     return <div>Event not found</div>;
@@ -77,7 +76,7 @@ export default function EditEventPage() {
           const finishDate = data.finish
             ? new Date(data.finish).toISOString()
             : null;
-          const { data: supabasedata, error } = await supabase
+          const { error } = await supabase
             .from("Events")
             .update({
               title: data.title,

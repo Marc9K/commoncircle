@@ -1,11 +1,7 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { Account } from "@/components/Account/Account";
-import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/server";
-import React from "react";
-import { Loader } from "@mantine/core";
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -24,18 +20,16 @@ export default async function AccountPage() {
     .eq("uid", user.id)
     .single();
 
-  const { data: runningCommunities, error: runningCommunitiesError } =
-    await supabase
-      .from(`Circles`)
-      .select(`role, community (id, name, picture)`)
-      .eq("member", currentMember?.id)
-      .in("role", ["owner", "manager", "event_creator"]);
-  const { data: memberCommunities, error: memberCommunitiesError } =
-    await supabase
-      .from(`Circles`)
-      .select(`role, community (id, name, picture)`)
-      .eq("member", currentMember?.id)
-      .in("role", ["member", "door_person"]);
+  const { data: runningCommunities } = await supabase
+    .from(`Circles`)
+    .select(`role, community (id, name, picture)`)
+    .eq("member", currentMember?.id)
+    .in("role", ["owner", "manager", "event_creator"]);
+  const { data: memberCommunities } = await supabase
+    .from(`Circles`)
+    .select(`role, community (id, name, picture)`)
+    .eq("member", currentMember?.id)
+    .in("role", ["member", "door_person"]);
 
   const { data: pastEvents } = await supabase.rpc("get_my_past_events");
 

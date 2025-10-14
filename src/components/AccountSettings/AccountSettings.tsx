@@ -32,7 +32,9 @@ export function AccountSettings({ user }: AccountSettingsProps) {
     try {
       await supabase.auth.signOut();
       // Redirect will be handled by middleware
-      typeof window !== "undefined" && (window.location.href = "/");
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
     } catch (error) {
       console.error("Error signing out:", error);
     } finally {
@@ -53,7 +55,9 @@ export function AccountSettings({ user }: AccountSettingsProps) {
 
       // For now, just sign out
       await supabase.auth.signOut();
-      typeof window !== "undefined" && (window.location.href = "/");
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
     } catch (error) {
       console.error("Error deleting account:", error);
     } finally {

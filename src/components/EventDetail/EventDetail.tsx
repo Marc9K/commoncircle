@@ -19,7 +19,7 @@ import {
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Variable from "../Variable/Variable";
-import { EventAttendees, Attendee } from "../EventAttendees/EventAttendees";
+import { EventAttendees } from "../EventAttendees/EventAttendees";
 import { EventSettings } from "../EventSettings/EventSettings";
 import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
@@ -462,7 +462,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       setMemberId(member.id);
     };
     fetchMember();
-  }, []);
+  }, [supabase]);
 
   const handleRegister = async () => {
     const { error } = await supabase.from("Attendees").insert({

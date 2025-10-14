@@ -1,5 +1,4 @@
 import { Card, Image, Stack, Title, Text, Group } from "@mantine/core";
-import { useRouter } from "next/navigation";
 
 export interface EventCardData {
   id: string | number;

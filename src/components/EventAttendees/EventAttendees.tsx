@@ -10,20 +10,18 @@ import {
   Button,
   Menu,
   ActionIcon,
-  Avatar,
   Card,
   Grid,
   Modal,
   TextInput,
-  Select,
   Divider,
   Title,
   Container,
   Input,
   Paper,
 } from "@mantine/core";
-import { useState, useMemo, useEffect } from "react";
-import { FcCancel, FcDownLeft, FcExpand, FcOk, FcSearch } from "react-icons/fc";
+import { useState, useMemo } from "react";
+import { FcCancel, FcDownLeft, FcExpand, FcSearch } from "react-icons/fc";
 
 export interface Attendee {
   id: string;
@@ -315,11 +313,7 @@ export function EventAttendees({
     // setAttendees(attendees || []);
     return attendees || [];
   };
-  const {
-    data: attendees = [],
-    error,
-    isLoading,
-  } = useSWR("attendees", fetchAttendees);
+  const { data: attendees = [] } = useSWR("attendees", fetchAttendees);
   // useEffect(() => {
   //   fetchAttendees();
   // }, [eventId]);

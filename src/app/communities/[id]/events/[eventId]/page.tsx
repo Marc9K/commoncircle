@@ -1,12 +1,10 @@
 "use server";
 
-import { Header } from "@/components/header/Header";
 import {
   EventDetail,
   EventDetailData,
 } from "@/components/EventDetail/EventDetail";
-import { AppShell } from "@mantine/core";
-import { notFound, useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function EventDetailPage({
@@ -19,11 +17,7 @@ export default async function EventDetailPage({
     return notFound();
   }
 
-  const { data: user, error: userError } = await supabase.auth.getUser();
-
-  if (userError) {
-    return notFound();
-  }
+  const { data: user } = await supabase.auth.getUser();
   const { data: member, error: memberError } = await supabase
     .from("Members")
     .select("id")
@@ -34,7 +28,7 @@ export default async function EventDetailPage({
     return notFound();
   }
 
-  const { data: event, error } = await supabase
+  const { data: event } = await supabase
     .from("Events")
     .select("*")
     .eq("id", eventId)
@@ -62,7 +56,7 @@ export default async function EventDetailPage({
     return notFound();
   }
 
-  const { data: currentUserRole, error: currentUserRoleError } = await supabase
+  const { data: currentUserRole } = await supabase
     .from("Circles")
     .select("role")
     .eq("community", id)

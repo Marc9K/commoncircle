@@ -1,8 +1,6 @@
 "use client";
 
-import { Header } from "@/components/header/Header";
 import { EventForm, EventFormData } from "@/components/EventForm/EventForm";
-import { AppShell } from "@mantine/core";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -37,7 +35,7 @@ export default function NewEventPage() {
     const filePath = `${communityId}/${fileName}`;
 
     try {
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("events")
         .upload(filePath, selectedFile);
 
@@ -72,7 +70,7 @@ export default function NewEventPage() {
         data.picture instanceof File ? data.picture : null
       );
 
-      const { data: supabasedata, error } = await supabase
+      const { error } = await supabase
         .from("Events")
         .insert({
           community: parseInt(communityId),
@@ -106,9 +104,7 @@ export default function NewEventPage() {
         color: "green",
       });
 
-      router.push(
-        `/communities/${communityId}/events/${supabasedata?.id ?? "new"}`
-      );
+      router.push(`/communities/${communityId}/events/${data?.id ?? "new"}`);
     } catch (error) {
       console.error("Unexpected error:", error);
       notifications.show({

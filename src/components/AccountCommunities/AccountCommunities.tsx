@@ -11,7 +11,6 @@ import {
 import { CommunityCard } from "../CommunityCard/CommunityCard";
 import { EmptyState } from "../EmptyState/EmptyState";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 export interface Community {
   id: string;

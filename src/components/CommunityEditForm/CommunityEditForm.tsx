@@ -15,7 +15,6 @@ import {
   MultiSelect,
   Grid,
   Alert,
-  Progress,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useState } from "react";
@@ -116,7 +115,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
     const fileName = `${uuid}.${fileExt}`;
 
     try {
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("communities")
         .upload(fileName, selectedFile);
 
@@ -167,7 +166,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
     }
 
     const filteredValues = Object.fromEntries(
-      Object.entries(values).filter(([_, value]) => {
+      Object.entries(values).filter(([, value]) => {
         if (Array.isArray(value)) {
           return value.length > 0;
         }

@@ -1,9 +1,7 @@
 "use client";
 
-import { Header } from "@/components/header/Header";
 import { CommunitiesGrid } from "@/components/CommunitiesGrid/CommunitiesGrid";
 import {
-  AppShell,
   Container,
   Stack,
   Group,
@@ -12,7 +10,6 @@ import {
   Button,
   Grid,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect } from "react";
@@ -27,7 +24,6 @@ interface Community {
 }
 
 export default function CommunitiesPage() {
-  const [opened, { toggle }] = useDisclosure();
   const [search, setSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("popular");
@@ -47,7 +43,7 @@ export default function CommunitiesPage() {
           setCommunities(data);
         }
       });
-  }, []);
+  }, [supabase]);
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();

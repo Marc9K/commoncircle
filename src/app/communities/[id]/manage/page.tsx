@@ -4,7 +4,7 @@ import { CommunityManage } from "@/components/CommunityManage/CommunityManage";
 import { createClient } from "@/lib/supabase/client";
 import { Container, Loader } from "@mantine/core";
 import { useParams } from "next/navigation";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 
 export default function CommunityManagePage() {
   const { id } = useParams();
@@ -41,17 +41,15 @@ export default function CommunityManagePage() {
     return members;
   };
 
-  const {
-    data: community = undefined,
-    error,
-    isLoading: isLoadingCommunity,
-  } = useSWR("community", fetchCommunity);
+  const { data: community = undefined, isLoading: isLoadingCommunity } = useSWR(
+    "community",
+    fetchCommunity
+  );
 
-  const {
-    data: members = [],
-    error: membersError,
-    isLoading: membersLoading,
-  } = useSWR("members", fetchMembers);
+  const { data: members = [], isLoading: membersLoading } = useSWR(
+    "members",
+    fetchMembers
+  );
 
   if (isLoadingCommunity || membersLoading) {
     return (

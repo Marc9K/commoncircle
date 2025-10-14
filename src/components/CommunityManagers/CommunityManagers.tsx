@@ -34,7 +34,7 @@ const ROLE_COLORS = {
 } as const;
 
 export function CommunityManagers({ managers }: CommunityManagersProps) {
-  const [opened, { open, close }] = useDisclosure(false);
+  const [, { open, close }] = useDisclosure(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +49,7 @@ export function CommunityManagers({ managers }: CommunityManagersProps) {
       )?.role;
       setCurrentUserRole(currentUserRole);
     });
-  }, [managers]);
+  }, [managers, supabase.auth]);
 
   const canManageManagers =
     currentUserRole === "owner" || currentUserRole === "manager";

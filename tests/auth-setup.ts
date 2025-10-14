@@ -1,6 +1,4 @@
 import { Page } from "@playwright/test";
-import path from "path";
-import fs from "fs";
 
 function getTestEmail(index: number) {
   return `test${index}@testing.org`;

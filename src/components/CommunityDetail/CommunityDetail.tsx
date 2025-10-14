@@ -6,7 +6,6 @@ import { EventCard, EventCardData } from "@/components/EventCard/EventCard";
 import Variable from "@/components/Variable/Variable";
 import { Map } from "../Map/Map";
 import {
-  AppShell,
   Stack,
   Group,
   Title,
@@ -242,7 +241,7 @@ export default function CommunityDetail({
     }
     console.log(member);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("Circles")
       .delete()
       .eq("member", member.id)

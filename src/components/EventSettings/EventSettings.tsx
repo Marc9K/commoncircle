@@ -6,7 +6,6 @@ import {
   Text,
   Button,
   Card,
-  Switch,
   Divider,
   Container,
   Alert,
@@ -29,44 +28,6 @@ interface EventSettingsProps {
   onToggleRegistration: (isOpen: boolean) => void;
   onChangeEventType: (type: "public" | "private") => void;
   onDeleteEvent: () => void;
-}
-
-function RegistrationSettings({
-  isRegistrationOpen,
-  onToggleRegistration,
-}: {
-  isRegistrationOpen: boolean;
-  onToggleRegistration: (isOpen: boolean) => void;
-}) {
-  return (
-    <Card withBorder radius="md" p="lg">
-      <Stack gap="md">
-        <Group justify="space-between" align="center">
-          <div>
-            <Text fw={600} size="md">
-              Registration Status
-            </Text>
-            <Text size="sm" c="dimmed">
-              Control whether people can register for this event
-            </Text>
-          </div>
-          <Switch
-            checked={isRegistrationOpen}
-            onChange={(event) =>
-              onToggleRegistration(event.currentTarget.checked)
-            }
-            color="green"
-            size="lg"
-          />
-        </Group>
-        <Alert color={isRegistrationOpen ? "green" : "red"} variant="light">
-          {isRegistrationOpen
-            ? "Registration is currently open - people can register for this event"
-            : "Registration is closed - no new registrations are allowed"}
-        </Alert>
-      </Stack>
-    </Card>
-  );
 }
 
 function EventTypeSettings({

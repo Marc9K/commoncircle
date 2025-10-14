@@ -22,7 +22,7 @@ export async function createMember(
   });
 
   if (user) {
-    const { data: existingMember, error: memberError } = await supabase
+    const { error: memberError } = await supabase
       .from("Members")
       .select("id")
       .eq("uid", user.id)

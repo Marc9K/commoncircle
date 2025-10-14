@@ -1,7 +1,7 @@
 import { Header } from "@/components/header/Header";
 import { LoginForm } from "@/components/LoginForm/login-form";
 import { createClient } from "@/lib/supabase/server";
-import { AppShell, Stack } from "@mantine/core";
+import { Stack } from "@mantine/core";
 import { redirect } from "next/navigation";
 
 export default async function Page() {

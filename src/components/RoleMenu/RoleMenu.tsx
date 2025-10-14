@@ -37,7 +37,7 @@ interface RoleMenuProps {
   currentUserRole: "owner" | "manager" | "event_creator" | "door_person";
 }
 
-export default function RoleMenu({ manager, currentUserRole }: RoleMenuProps) {
+export default function RoleMenu({ manager }: RoleMenuProps) {
   const supabase = createClient();
   return (
     <Menu shadow="md" width={200}>

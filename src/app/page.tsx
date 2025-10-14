@@ -1,8 +1,6 @@
 "use client";
 
-import { Header } from "@/components/header/Header";
 import {
-  AppShell,
   Button,
   Card,
   Container,
@@ -13,12 +11,10 @@ import {
   Title,
   Image,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import Visible from "@/components/Visible/Visible";
 import { CommunitiesGrid } from "@/components/CommunitiesGrid/CommunitiesGrid";
 
 export default function Home() {
-  const [opened, { toggle }] = useDisclosure();
   const user = undefined;
   return (
     <Container pt={160}>
@@ -61,7 +57,7 @@ export default function Home() {
           <Grid.Col span={12}>
             <Card withBorder padding="lg" radius="md">
               <Stack gap="xs">
-                <Image src="./people.jpg" radius="md" />
+                <Image src="./people.jpg" radius="md" alt="Community members" />
                 <Title order={2}>Top community growth +32%</Title>
               </Stack>
             </Card>

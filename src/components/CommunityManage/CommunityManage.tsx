@@ -1,15 +1,11 @@
 "use client";
 
-import { Header } from "@/components/header/Header";
-import { AppShell, Container, Loader, Stack, Tabs } from "@mantine/core";
+import { Container, Loader, Stack, Tabs } from "@mantine/core";
 import { CommunityEditForm } from "@/components/CommunityEditForm/CommunityEditForm";
 import { CommunityManagers } from "@/components/CommunityManagers/CommunityManagers";
 import { Members } from "@/components/Members/Members";
 import { CommunitySettings } from "@/components/CommunitySettings/CommunitySettings";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { User } from "@supabase/supabase-js";
 
 export interface CommunityManager {
   id: string;
