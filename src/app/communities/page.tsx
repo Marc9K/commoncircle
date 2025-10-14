@@ -13,6 +13,7 @@ import {
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 interface Community {
   name: string;
@@ -24,6 +25,8 @@ interface Community {
 }
 
 export default function CommunitiesPage() {
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("popular");
 
@@ -32,19 +35,26 @@ export default function CommunitiesPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    supabase
+    let query = supabase
       .from("communities")
       .select(
         "id, name, languages, created_at, picture, description, email, website, established, location, public, Circles(count), Events(count)"
-      )
-      .then(({ data, error }) => {
-        if (error) {
-          console.error(error);
-        } else {
-          setCommunities(data);
-        }
+      );
+
+    if (search && search.trim() !== "") {
+      query = query.textSearch("name", search, {
+        type: "websearch",
       });
-  }, [supabase]);
+    }
+
+    query.then(({ data, error }) => {
+      if (error) {
+        console.error(error);
+      } else {
+        setCommunities(data);
+      }
+    });
+  }, [supabase, search]);
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
@@ -75,9 +85,9 @@ export default function CommunitiesPage() {
   }, [communities, selectedTags, sortBy]);
 
   return (
-    <Container mt={100}>
+    <Container mt={100} style={{ overflow: "hidden" }}>
       <Stack gap="lg">
-        <Grid>
+        <Grid style={{ overflow: "hidden" }}>
           <Grid.Col>
             <MultiSelect
               placeholder="Filter by tags"

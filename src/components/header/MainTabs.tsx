@@ -11,6 +11,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { FcSearch } from "react-icons/fc";
 import classes from "./Header.module.css";
 import Variable from "../Variable/Variable";
+import { useState } from "react";
 
 const tabs = [
   { value: "/", label: "Home" },
@@ -51,8 +52,24 @@ function TheTabs() {
 }
 
 function Input() {
+  const router = useRouter();
+  const [search, setSearch] = useState("");
   return (
-    <TextInput placeholder="Search" leftSection={<FcSearch size={16} />} />
+    <TextInput
+      placeholder="Search"
+      aria-label="Search"
+      leftSection={<FcSearch size={16} />}
+      value={search}
+      onChange={(event) => {
+        const value = event.target.value;
+        setSearch(value);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          router.push(`/communities?search=${search}`);
+        }
+      }}
+    />
   );
 }
 
