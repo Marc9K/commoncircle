@@ -2,6 +2,7 @@
 
 import { Account } from "@/components/Account/Account";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function AccountPage() {
   const supabase = await createClient();
@@ -9,9 +10,9 @@ export default async function AccountPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // if (user === null) {
-  //   redirect("/auth/login");
-  // }
+  if (user === null) {
+    redirect("/auth/login");
+  }
 
   // First get the member record for the current user
   const { data: currentMember } = await supabase

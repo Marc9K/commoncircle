@@ -179,7 +179,7 @@ test.describe("Attendee Updates", () => {
 
     const attendeeCard = page.locator(`text=${attendeeName}`).locator('..').locator('..').locator('..').locator('..');
     await attendeeCard.getByTestId('check-in-button').click();
-    await expect(page.locator('text=Checked In')).toBeVisible();
+    await expect(page.locator('text=checked in')).toBeVisible();
 
 
     await attendeeCard.getByTestId('attendee-menu').click();

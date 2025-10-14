@@ -97,21 +97,20 @@ async function createCommunityAndEvent(page: any) {
 
 async function navigateToAttendeesTab(page: any) {
   await page.getByTestId('attendees-tab').first().click();
-  // await page.waitForSelector('[data-testid="add-attendee-button"]');
-  await page.getByTestId('add-attendee-button').waitFor({ state: 'visible' });
+  await page.getByTestId('add-attendee-button').waitFor({ state: 'visible', timeout: 10000 });
 }
 
 async function addAttendee(page: any, name: string, email: string) {
   await page.getByTestId('add-attendee-button').click();
   
-  await page.waitForSelector('[data-testid="attendee-name-input"]');
+  await page.waitForSelector('[data-testid="attendee-name-input"]', { timeout: 10000 });
   
   await page.getByTestId('attendee-name-input').fill(name);
   await page.getByTestId('attendee-email-input').fill(email);
   
   await page.getByTestId('add-attendee-submit-button').click();
   
-  await page.waitForSelector('[data-testid="add-attendee-button"]', { state: 'visible' });
+  await page.waitForSelector('[data-testid="add-attendee-button"]', { state: 'visible', timeout: 10000 });
 }
 
 test.describe("Adding New Attendee", () => {
@@ -132,6 +131,7 @@ test.describe("Adding New Attendee", () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.context().clearCookies();
     page.setDefaultTimeout(15000);
     await authenticateUser(page);
     await page.goto(`/communities/${communityId}/events/${eventId}`);

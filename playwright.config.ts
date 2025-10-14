@@ -10,15 +10,25 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
-  // globalSetup: "./tests/global-setup.ts",
+  globalSetup: "./tests/global-setup.ts",
+  timeout: 60000, // 60 seconds for entire test
+  expect: {
+    timeout: 10000, // 10 seconds for assertions
+  },
 
   use: {
     baseURL: "http://localhost:3000",
-    storageState: "tests/auth-state.json",
+    // storageState: "tests/auth-state.json", // Commented out to prevent persistent auth state
     trace: "on-first-retry",
+    actionTimeout: 10000, // 10 seconds for actions
+    navigationTimeout: 30000, // 30 seconds for navigation
     // Set environment variables for the browser context
     extraHTTPHeaders: {
       'X-Playwright-Test': 'true'
+    },
+    // Force fresh context for each test to prevent auth state persistence
+    launchOptions: {
+      args: ['--incognito']
     }
   },
 

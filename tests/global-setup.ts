@@ -6,7 +6,7 @@ async function globalSetup() {
   const page = await browser.newPage();
 
   try {
-    await authenticateUser(page);
+    await authenticateUser(page, 2); // Use userIndex 2
 
     await page.context().storageState({ path: "tests/auth-state.json" });
 

@@ -298,11 +298,28 @@ function RegistrationButton({
     window.open(googleCalendarUrl.toString(), "_blank");
   };
 
+  const manageButton = (
+    <Button
+      variant="filled"
+      color="blue"
+      onClick={() =>
+        typeof window !== "undefined" &&
+        (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
+      }
+      data-testid="manage-event-button"
+    >
+      Manage Event
+    </Button>
+  );
+
   if (isPastEvent) {
     return (
-      <Button disabled variant="light">
-        Event has ended
-      </Button>
+      <Stack gap="sm">
+        <Button disabled variant="light">
+          Event has ended
+        </Button>
+        {isManager && manageButton}
+      </Stack>
     );
   }
 
@@ -320,6 +337,7 @@ function RegistrationButton({
         >
           Add to Google Calendar
         </Button>
+        {isManager && manageButton}
       </Stack>
     );
   }
@@ -331,20 +349,6 @@ function RegistrationButton({
       </Button>
     );
   }
-
-  const manageButton = (
-    <Button
-      variant="filled"
-      color="blue"
-      onClick={() =>
-        typeof window !== "undefined" &&
-        (window.location.href = `/communities/${event.communityId}/events/${event.id}/edit`)
-      }
-      data-testid="manage-event-button"
-    >
-      Manage Event
-    </Button>
-  );
 
   if (event.payWhatYouCan && onPayWhatYouCanAmountChange) {
     return (

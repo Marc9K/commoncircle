@@ -251,7 +251,7 @@ test.describe("Event Edit", () => {
     await verifyEventDisplayData(page, updatedEventData);
     
     await page.getByRole('button', { name: 'Manage Event' }).click();
-    await page.waitForSelector('[data-testid="event-title-input"]');
+    await page.getByTestId("event-title-input").waitFor({ state: 'visible' });
     
     const payWhatYouCanEventData = { 
       ...updatedEventData, 

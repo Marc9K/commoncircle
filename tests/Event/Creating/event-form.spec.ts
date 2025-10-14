@@ -287,6 +287,7 @@ test.describe("EventForm", () => {
     await page.getByTestId('event-finish-input').fill(testData.finish);
     await page.getByTestId('event-location-input').fill(testData.location);
     
+    // Add tags
     for (const tag of testData.tags) {
       await page.getByTestId('event-tags-input').fill(tag);
       await page.keyboard.press('Enter');
@@ -294,6 +295,7 @@ test.describe("EventForm", () => {
     
     await page.getByTestId('event-submit-button').click();
     
+    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
@@ -317,6 +319,7 @@ test.describe("EventForm", () => {
     
     await page.getByTestId('event-submit-button').click();
     
+    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 
@@ -329,6 +332,7 @@ test.describe("EventForm", () => {
     
     await page.getByTestId('event-cancel-button').click();
     
+    // Should redirect to community page
     await expect(page).toHaveURL(/\/communities\/36/);
   });
 });

@@ -8,9 +8,9 @@ import useSWR from "swr";
 
 export default function CommunityManagePage() {
   const { id } = useParams();
+  const supabase = createClient();
 
   const fetchCommunity = async () => {
-    const supabase = createClient();
     const { data: community, error } = await supabase
       .from("communities")
       .select("*")
@@ -27,7 +27,6 @@ export default function CommunityManagePage() {
   };
 
   const fetchMembers = async () => {
-    const supabase = createClient();
     const { data: members, error: membersError } = await supabase
       .from("Circles")
       .select(
@@ -38,7 +37,7 @@ export default function CommunityManagePage() {
     if (membersError) {
       console.error(membersError);
     }
-    return members;
+    return members || [];
   };
 
   const { data: community = undefined, isLoading: isLoadingCommunity } = useSWR(
@@ -51,13 +50,13 @@ export default function CommunityManagePage() {
     fetchMembers
   );
 
-  if (isLoadingCommunity || membersLoading) {
-    return (
-      <Container size="lg" mt={100}>
-        <Loader />
-      </Container>
-    );
-  }
+  // if (isLoadingCommunity || membersLoading) {
+  //   return (
+  //     <Container size="lg" mt={100}>
+  //       <Loader />
+  //     </Container>
+  //   );
+  // }
 
   return (
     <CommunityManage

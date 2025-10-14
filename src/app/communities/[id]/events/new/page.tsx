@@ -70,7 +70,7 @@ export default function NewEventPage() {
         data.picture instanceof File ? data.picture : null
       );
 
-      const { error } = await supabase
+      const { data: supabasedata, error } = await supabase
         .from("Events")
         .insert({
           community: parseInt(communityId),
@@ -103,8 +103,10 @@ export default function NewEventPage() {
         message: "Event created successfully!",
         color: "green",
       });
-
-      router.push(`/communities/${communityId}/events/${data?.id ?? "new"}`);
+      console.log(data);
+      router.push(
+        `/communities/${communityId}/events/${supabasedata?.id ?? "new"}`
+      );
     } catch (error) {
       console.error("Unexpected error:", error);
       notifications.show({

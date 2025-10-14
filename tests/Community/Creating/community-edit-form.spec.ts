@@ -6,8 +6,7 @@ test.describe("CommunityEditForm", () => {
   test.beforeEach(async ({ page }) => {
     await authenticateUser(page);
     await page.goto("/communities/new");
-
-    await page.waitForSelector("form");
+    await page.waitForSelector("form", { timeout: 10000 });
   });
 
   test("should not submit when required fields are missing", async ({

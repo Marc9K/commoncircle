@@ -63,7 +63,7 @@ export function CommunityManage({
           <Tabs.List>
             <Tabs.Tab
               value="details"
-              data-testid="community-settings-tab"
+              data-testid="community-details-tab"
               key="details-tab-tab"
             >
               Info

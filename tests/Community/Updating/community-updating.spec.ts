@@ -10,6 +10,7 @@ async function logoutUser(page: any) {
 }
 
 test.describe("Community - Updating", () => {
+  test.describe.configure({ mode: 'serial' });
   let communityId: string;
 
   test("should allow user to create community, accept pending members, and promote to manager", async ({ page }) => {
@@ -53,19 +54,28 @@ test.describe("Community - Updating", () => {
     await logoutUser(page);
     await authenticateUser(page, 1);
 
-    await page.goto(`/communities/${communityId}/manage`);
-    await page.waitForTimeout(50000);
+    await page.goto(`/communities/${communityId}`);
+    await page.getByTestId('manage-community-button').first().click();
+    // await page.goto(`/communities/${communityId}/manage`);
+    // await page.waitForTimeout(50000);
+    await page.getByTestId('community-members-tab').waitFor({ state: 'visible', timeout: 100000 });
+    await page.getByTestId('community-members-tab').first().click();
     await page.getByTestId('pending-members-section').waitFor({ state: 'visible', timeout: 100000 });
 
     await page.getByTestId('approve-member-button').first().click();
+    await page.waitForTimeout(5000);
+    await page.getByTestId('existing-members-tab').first().click();
     
     await expect(page.getByTestId('existing-members-section').first()).toBeVisible();
     await expect(page.getByTestId('member-email').first()).toContainText("test2@testing.org");
 
+    await page.getByTestId('role-menu-button').first().waitFor({ state: 'visible', timeout: 100000 });
     await page.getByTestId('role-menu-button').first().click();
     await page.getByTestId('role-manager-option').first().click();
+    await page.waitForTimeout(5000);
+    await page.getByTestId('community-managers-tab').first().click();
     
-    await expect(page.getByTestId('member-role').first()).toContainText("Manager");
+    await expect(page.getByTestId('member-role')[1]).toContainText("Manager");
 
     await logoutUser(page);
     await authenticateUser(page, 2);
@@ -85,7 +95,7 @@ test.describe("Community - Updating", () => {
   test("should handle role changes and permissions correctly", async ({ page }) => {
     await authenticateUser(page, 1);
     await page.goto(`/communities/${communityId}/manage`);
-    await page.waitForSelector('[data-testid="community-members-tab"]');
+    await page.getByTestId("community-members-tab").first().waitFor({ state: 'visible' });
 
     await page.getByTestId('community-members-tab').first().click();
     await page.getByTestId('existing-members-tab').first().click();

@@ -9,8 +9,8 @@ function getTestPassword(index: number) {
 }
 
 
-export async function authenticateUser(page: Page, userIndex: number) {
-  await page.goto("/auth/login");
+export async function authenticateUser(page: Page, userIndex: number = 2) {
+  await page.goto(`http://localhost:3000/auth/login`);
   await page.waitForSelector('[data-testid="email-login-form"]', { timeout: 10000 });
 
   await page.getByTestId('email-input').fill(getTestEmail(userIndex));

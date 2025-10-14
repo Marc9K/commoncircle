@@ -34,7 +34,7 @@ const ROLE_COLORS = {
 } as const;
 
 export function CommunityManagers({ managers }: CommunityManagersProps) {
-  const [, { open, close }] = useDisclosure(false);
+  const [opened, { open, close }] = useDisclosure(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,7 +111,11 @@ export function CommunityManagers({ managers }: CommunityManagersProps) {
                 </Table.Td>
                 <Table.Td>
                   <Stack gap={4}>
-                    <Badge color={ROLE_COLORS[manager.role]} size="sm">
+                    <Badge
+                      color={ROLE_COLORS[manager.role]}
+                      size="sm"
+                      data-testid="member-role"
+                    >
                       {
                         ROLE_OPTIONS.find((r) => r.value === manager.role)
                           ?.label

@@ -105,9 +105,9 @@ async function createCommunityAndEvent(page: any) {
 async function navigateToCommunitySettings(page: any, communityId: string) {
   await page.goto(`/communities/${communityId}/manage`);
   
-  await page.waitForSelector('[role="tablist"]');
+  await page.getByTestId("community-settings-tab").first().waitFor({ state: 'visible' });
   
-  await page.getByRole('tab', { name: 'Settings' }).click();
+  await page.getByTestId('community-settings-tab').first().click();
   
   await page.waitForSelector('text=Danger Zone');
 }
