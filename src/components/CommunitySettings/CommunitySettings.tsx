@@ -21,12 +21,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FcEmptyTrash, FcHighPriority } from "react-icons/fc";
 
-interface CommunitySettingsProps {
-  communityId: string;
-  currentUserRole: "owner" | "manager" | "event_creator" | "door_person";
-}
-
-export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
+export function CommunitySettings() {
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const [paymentOpened, { open: openPayment, close: closePayment }] =
@@ -167,6 +162,7 @@ export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
           </Text>
 
           <TextInput
+            data-testid="community-description-input"
             placeholder="Type DELETE to confirm"
             onChange={(event) => {
               if (event.currentTarget.value === "DELETE") {
@@ -184,6 +180,7 @@ export function CommunitySettings({ currentUserRole }: CommunitySettingsProps) {
               onClick={handleDeleteCommunity}
               loading={isDeleting}
               disabled={deleteConfirmation !== "DELETE"}
+              data-testid="save-settings-button"
             >
               Delete Community
             </Button>

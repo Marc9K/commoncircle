@@ -25,18 +25,14 @@ export function CommunityCard({
 
   const fetchMemberCount = async () => {
     try {
-      const {
-        data: {
-          member: { count },
-        },
-        error: memberCountError,
-      } = await supabase
+      const { data, error: memberCountError } = await supabase
         .from("Circles")
         .select("member(count)")
         .eq("community", id)
         .single();
-      console.log(count);
-      setMemberCount(count);
+      if (data?.member.count) {
+        setMemberCount(data?.member.count);
+      }
     } catch (error) {
       console.error(error);
     }

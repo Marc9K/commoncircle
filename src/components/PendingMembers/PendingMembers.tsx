@@ -9,9 +9,12 @@ import {
   Table,
   ActionIcon,
   Alert,
+  Avatar,
 } from "@mantine/core";
 import { useState } from "react";
 import { FcCancel, FcOk } from "react-icons/fc";
+import { createClient } from "@/lib/supabase/client";
+import { mutate } from "swr";
 
 export interface PendingMember {
   id: string;
@@ -23,40 +26,44 @@ export interface PendingMember {
 }
 
 interface PendingMembersProps {
-  communityId: string;
   pendingMembers: PendingMember[];
-  currentUserRole: "owner" | "manager" | "event_creator" | "door_person";
 }
 
-export function PendingMembers({
-  pendingMembers,
-  currentUserRole,
-}: PendingMembersProps) {
+export function PendingMembers({ pendingMembers }: PendingMembersProps) {
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
-
-  const canManageMembers =
-    currentUserRole === "owner" || currentUserRole === "manager";
-
-  const handleApprove = async (memberId: string) => {
-    setIsProcessing(memberId);
-    setTimeout(() => setIsProcessing(null), 1000);
+  const supabase = createClient();
+  const handleApprove = async (member: PendingMember) => {
+    setIsProcessing(member.Members.id);
+    const { error } = await supabase
+      .from("Circles")
+      .update({ role: "member" })
+      .eq("member", member.Members.id)
+      .eq("community", member.community);
+    if (error) {
+      console.error(error);
+    } else {
+      mutate("members");
+      setIsProcessing(null);
+    }
   };
 
-  const handleReject = async (memberId: string) => {
-    setIsProcessing(memberId);
-    setTimeout(() => setIsProcessing(null), 1000);
+  const handleReject = async (member: PendingMember) => {
+    setIsProcessing(member.Members.id);
+    const { error } = await supabase
+      .from("Circles")
+      .delete()
+      .eq("member", member.Members.id)
+      .eq("community", member.community);
+    if (error) {
+      console.error(error);
+    } else {
+      mutate("members");
+      setIsProcessing(null);
+    }
   };
-
-  if (!canManageMembers) {
-    return (
-      <Alert color="yellow" title="Limited Access">
-        You need owner or manager permissions to manage member requests.
-      </Alert>
-    );
-  }
 
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" data-testid="pending-members-section">
       <Stack gap="xs">
         <Title order={3}>Pending Member Requests</Title>
         <Text size="sm" c="dimmed">
@@ -80,40 +87,48 @@ export function PendingMembers({
             </Table.Thead>
             <Table.Tbody>
               {pendingMembers.map((member) => (
-                <Table.Tr key={member.id}>
+                <Table.Tr key={member.Members.id}>
                   <Table.Td>
                     <Group gap="sm">
+                      <Avatar
+                        src={member.Members.avatar_url}
+                        alt={member.Members.name}
+                        size="sm"
+                        radius="xl"
+                      />
                       <Stack gap={0}>
                         <Text fw={500} size="sm">
-                          {member.name}
+                          {member.Members.name}
                         </Text>
-                        <Text size="xs" c="dimmed">
-                          {member.email}
+                        <Text size="xs" c="dimmed" data-testid="member-email">
+                          {member.Members.email}
                         </Text>
                       </Stack>
                     </Group>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">
-                      {new Date(member.requestedAt).toLocaleDateString()}
+                      {new Date(member.created_at).toLocaleDateString()}
                     </Text>
                   </Table.Td>
                   <Table.Td>
                     <Group gap="xs">
                       <ActionIcon
+                        data-testid="approve-member-button"
                         color="green"
                         variant="light"
-                        onClick={() => handleApprove(member.id)}
-                        loading={isProcessing === member.id}
+                        onClick={() => handleApprove(member)}
+                        loading={isProcessing === member.Members.id}
                         disabled={isProcessing !== null}
                       >
                         <FcOk size={16} />
                       </ActionIcon>
                       <ActionIcon
+                        data-testid="reject-member-button"
                         color="red"
                         variant="light"
-                        onClick={() => handleReject(member.id)}
-                        loading={isProcessing === member.id}
+                        onClick={() => handleReject(member)}
+                        loading={isProcessing === member.Members.id}
                         disabled={isProcessing !== null}
                       >
                         <FcCancel size={16} />

@@ -11,41 +11,28 @@ import {
 } from "../ExistingMembers/ExistingMembers";
 
 interface MembersProps {
-  communityId: string;
   pendingMembers: PendingMember[];
   existingMembers: ExistingMember[];
-  currentUserRole: "owner" | "manager" | "event_creator" | "door_person";
 }
 
-export function Members({
-  communityId,
-  pendingMembers,
-  existingMembers,
-  currentUserRole,
-}: MembersProps) {
+export function Members({ pendingMembers, existingMembers }: MembersProps) {
   return (
     <Tabs defaultValue="pending">
       <Tabs.List>
-        <Tabs.Tab value="pending">Pending ({pendingMembers.length})</Tabs.Tab>
-        <Tabs.Tab value="existing">
+        <Tabs.Tab value="pending" data-testid="pending-members-tab">
+          Pending ({pendingMembers.length})
+        </Tabs.Tab>
+        <Tabs.Tab value="existing" data-testid="existing-members-tab">
           Existing ({existingMembers.length})
         </Tabs.Tab>
       </Tabs.List>
 
       <Tabs.Panel value="pending" pt="md">
-        <PendingMembers
-          communityId={communityId}
-          pendingMembers={pendingMembers}
-          currentUserRole={currentUserRole}
-        />
+        <PendingMembers pendingMembers={pendingMembers} />
       </Tabs.Panel>
 
       <Tabs.Panel value="existing" pt="md">
-        <ExistingMembers
-          communityId={communityId}
-          existingMembers={existingMembers}
-          currentUserRole={currentUserRole}
-        />
+        <ExistingMembers existingMembers={existingMembers} />
       </Tabs.Panel>
     </Tabs>
   );

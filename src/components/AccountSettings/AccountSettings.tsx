@@ -105,6 +105,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
               variant="filled"
               onClick={handleSignOut}
               loading={isSigningOut}
+              data-testid="sign-out-button"
             >
               Sign Out
             </Button>

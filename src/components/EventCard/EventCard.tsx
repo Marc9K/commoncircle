@@ -98,7 +98,11 @@ export function EventCard({ event }: EventCardProps) {
 
           <Group justify="flex-end" align="center" mt="auto">
             <Text size="lg" fw={700} c={price == undefined ? "green" : "blue"}>
-              {price == undefined ? "Free" : `£${price}`}
+              {price == undefined
+                ? "Pay what you want"
+                : price === 0
+                ? "Free"
+                : `£${price}`}
             </Text>
           </Group>
         </Stack>

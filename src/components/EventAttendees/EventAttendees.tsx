@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import useSWR, { useSWRConfig, mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import {
   Stack,
   Group,

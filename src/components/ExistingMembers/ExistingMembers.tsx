@@ -12,6 +12,7 @@ import {
   Alert,
   Modal,
   Select,
+  Avatar,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
@@ -29,24 +30,16 @@ export interface ExistingMember {
 }
 
 interface ExistingMembersProps {
-  communityId: string;
   existingMembers: ExistingMember[];
-  currentUserRole: "owner" | "manager" | "event_creator" | "door_person";
 }
 
-export function ExistingMembers({
-  existingMembers,
-  currentUserRole,
-}: ExistingMembersProps) {
+export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
   const [opened, { close }] = useDisclosure(false);
   const [selectedMember, setSelectedMember] = useState<ExistingMember | null>(
     null
   );
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const canManageMembers =
-    currentUserRole === "owner" || currentUserRole === "manager";
 
   const handleSubmit = async () => {
     if (!selectedMember || !selectedRole) return;
@@ -60,16 +53,8 @@ export function ExistingMembers({
     }, 1000);
   };
 
-  if (!canManageMembers) {
-    return (
-      <Alert color="yellow" title="Limited Access">
-        You need owner or manager permissions to manage members.
-      </Alert>
-    );
-  }
-
   return (
-    <Stack gap="lg">
+    <Stack gap="lg" data-testid="existing-members-section">
       <Stack gap="xs">
         <Title order={3}>Community Members</Title>
         <Text size="sm" c="dimmed">
@@ -97,19 +82,25 @@ export function ExistingMembers({
                 <Table.Tr key={member.id}>
                   <Table.Td>
                     <Group gap="sm">
+                      <Avatar
+                        src={member.Members.avatar_url}
+                        alt={member.Members.name}
+                        size="sm"
+                        radius="xl"
+                      />
                       <div>
                         <Text fw={500} size="sm">
-                          {member.name}
+                          {member.Members.name}
                         </Text>
-                        <Text size="xs" c="dimmed">
-                          {member.email}
+                        <Text size="xs" c="dimmed" data-testid="member-email">
+                          {member.Members.email}
                         </Text>
                       </div>
                     </Group>
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">
-                      {new Date(member.joinedAt).toLocaleDateString()}
+                      {new Date(member.created_at).toLocaleDateString()}
                     </Text>
                   </Table.Td>
                   <Table.Td>
@@ -123,6 +114,7 @@ export function ExistingMembers({
                           : "blue"
                       }
                       size="sm"
+                      data-testid="member-role"
                     >
                       {member.role.replace("_", " ")}
                     </Badge>

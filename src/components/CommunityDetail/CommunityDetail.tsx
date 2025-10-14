@@ -59,14 +59,13 @@ function CommunityImage({ community }: { community: CommunityDetailData }) {
 }
 
 function CommunityTitle({ community }: { community: CommunityDetailData }) {
+  console.log("Community:", community);
   return (
     <Stack gap={4} miw={300}>
       <Title order={1}>{community.name}</Title>
       <Text c="dimmed" size="sm">
-        {community.public === "private"
-          ? "🔒 Private community"
-          : "🌍 Public community"}{" "}
-        • {community.memberCount.toLocaleString()} members • 📍{" "}
+        {community.public ? "🌍 Public community" : "🔒 Private community"}•
+        {community.memberCount.toLocaleString()} members • 📍
         {community.location}
       </Text>
     </Stack>
@@ -76,9 +75,11 @@ function CommunityTitle({ community }: { community: CommunityDetailData }) {
 function CommunityMeta({ community }: { community: CommunityDetailData }) {
   return (
     <Group gap="xs">
-      <Text size="sm" c="dimmed">
-        Founded in {new Date(community.established).getFullYear()}
-      </Text>
+      {community.established && (
+        <Text size="sm" c="dimmed">
+          Founded in {new Date(community.established).getFullYear()}
+        </Text>
+      )}
       {community.email && (
         <Button
           size="xs"
@@ -126,6 +127,7 @@ function JoinButton({
     <Group>
       {isManager ? (
         <Button
+          data-testid="manage-community-button"
           variant="filled"
           onClick={() =>
             typeof window !== "undefined" &&
@@ -139,12 +141,16 @@ function JoinButton({
           Leave community
         </Button>
       ) : joinRequestPending ? (
-        <Button variant="light" disabled>
+        <Button
+          variant="light"
+          disabled
+          data-testid="join-request-pending-button"
+        >
           Join request pending
         </Button>
       ) : (
-        <Button onClick={onJoinRequest}>
-          {community.public === "public" ? "Join" : "Request to join"}
+        <Button onClick={onJoinRequest} data-testid="join-community-button">
+          {community.public ? "Join" : "Request to join"}
         </Button>
       )}
     </Group>
@@ -198,13 +204,12 @@ export default function CommunityDetail({
   );
 
   const handleJoinRequest = async () => {
+    console.log(community);
     const supabase = createClient();
-    const { data, error } = await supabase
-      .from("Circles")
-      .insert({ member: member.id, community: community.id })
-      .select()
-      .single();
 
+    const { error } = await supabase.rpc("join_community", {
+      community_id: community.id,
+    });
     if (error) {
       console.error(error);
     }
@@ -215,7 +220,38 @@ export default function CommunityDetail({
     }
   };
 
-  const handleLeave = () => setIsMember(false);
+  const handleLeave = async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError) {
+      console.error(userError);
+      return;
+    }
+    console.log(user);
+    const { data: member, error: memberError } = await supabase
+      .from("Members")
+      .select("id")
+      .eq("uid", user.id)
+      .single();
+    if (memberError) {
+      console.error(memberError);
+      return;
+    }
+    console.log(member);
+
+    const { data, error } = await supabase
+      .from("Circles")
+      .delete()
+      .eq("member", member.id)
+      .eq("community", community.id);
+    if (error) {
+      console.error(error);
+    }
+    setIsMember(false);
+  };
 
   return (
     <Stack gap="lg" mt={120}>

@@ -14,6 +14,8 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect } from "react";
 
 interface Community {
   name: string;
@@ -30,15 +32,32 @@ export default function CommunitiesPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("popular");
 
-  const communities: Community[] = [];
+  const [communities, setCommunities] = useState<Community[]>([]);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase
+      .from("communities")
+      .select("*")
+      .then(({ data, error }) => {
+        if (error) {
+          console.error(error);
+        } else {
+          setCommunities(data);
+        }
+      });
+  }, []);
 
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    for (const c of communities) c.tags.forEach((t) => tags.add(t));
+    for (const c of communities) c.languages?.forEach((t) => tags.add(t));
     return Array.from(tags).sort();
   }, [communities]);
 
-  const filtered = useMemo(() => {
+  const filtered = communities;
+
+  useMemo(() => {
     let result = communities;
 
     if (search.trim()) {
@@ -68,61 +87,49 @@ export default function CommunitiesPage() {
   }, [communities, search, selectedTags, sortBy]);
 
   return (
-    <AppShell
-      padding="md"
-      header={{ height: 60 }}
-      navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }}
-    >
-      <AppShell.Header>
-        <Header />
-      </AppShell.Header>
+    <Container mt={100}>
+      <Stack gap="lg">
+        <Grid>
+          <Grid.Col>
+            <MultiSelect
+              placeholder="Filter by tags"
+              data={allTags}
+              value={selectedTags}
+              onChange={setSelectedTags}
+              searchable
+              clearable
+              w={{ base: "100%", sm: 320 }}
+            />
+          </Grid.Col>
+          <Grid.Col>
+            <Select
+              placeholder="Sort by"
+              value={sortBy}
+              onChange={setSortBy}
+              data={[
+                { value: "popular", label: "Most members" },
+                { value: "upcoming", label: "Most upcoming events" },
+                { value: "recent", label: "Most past events" },
+              ]}
+              w={{ base: "100%", sm: 220 }}
+            />
+          </Grid.Col>
+          <Group wrap="wrap" gap="sm">
+            <Button
+              variant="light"
+              onClick={() => {
+                setSearch("");
+                setSelectedTags([]);
+                setSortBy("popular");
+              }}
+            >
+              Reset
+            </Button>
+          </Group>
+        </Grid>
 
-      <AppShell.Main mt={{ base: 60, sm: 30 }}>
-        <Container>
-          <Stack gap="lg">
-            <Grid>
-              <Grid.Col>
-                <MultiSelect
-                  placeholder="Filter by tags"
-                  data={allTags}
-                  value={selectedTags}
-                  onChange={setSelectedTags}
-                  searchable
-                  clearable
-                  w={{ base: "100%", sm: 320 }}
-                />
-              </Grid.Col>
-              <Grid.Col>
-                <Select
-                  placeholder="Sort by"
-                  value={sortBy}
-                  onChange={setSortBy}
-                  data={[
-                    { value: "popular", label: "Most members" },
-                    { value: "upcoming", label: "Most upcoming events" },
-                    { value: "recent", label: "Most past events" },
-                  ]}
-                  w={{ base: "100%", sm: 220 }}
-                />
-              </Grid.Col>
-              <Group wrap="wrap" gap="sm">
-                <Button
-                  variant="light"
-                  onClick={() => {
-                    setSearch("");
-                    setSelectedTags([]);
-                    setSortBy("popular");
-                  }}
-                >
-                  Reset
-                </Button>
-              </Group>
-            </Grid>
-
-            <CommunitiesGrid communities={filtered} />
-          </Stack>
-        </Container>
-      </AppShell.Main>
-    </AppShell>
+        <CommunitiesGrid communities={filtered} />
+      </Stack>
+    </Container>
   );
 }

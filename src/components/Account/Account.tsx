@@ -31,9 +31,15 @@ export function Account({
 
         <Tabs defaultValue="communities" variant="outline">
           <Tabs.List justify="flex-end">
-            <Tabs.Tab value="communities">Communities</Tabs.Tab>
-            <Tabs.Tab value="events">Events</Tabs.Tab>
-            <Tabs.Tab value="settings">Settings</Tabs.Tab>
+            <Tabs.Tab value="communities" data-testid="communities-tab">
+              Communities
+            </Tabs.Tab>
+            <Tabs.Tab value="events" data-testid="events-tab">
+              Events
+            </Tabs.Tab>
+            <Tabs.Tab value="settings" data-testid="settings-tab">
+              Settings
+            </Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="settings" pt="md">

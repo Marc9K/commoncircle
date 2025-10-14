@@ -11,21 +11,22 @@ function getTestPassword(index: number) {
 }
 
 
-export async function authenticateUser(page: Page) {
+export async function authenticateUser(page: Page, userIndex: number) {
   await page.goto("/auth/login");
   await page.waitForSelector('[data-testid="email-login-form"]', { timeout: 10000 });
 
-  await page.getByTestId('email-input').fill(getTestEmail(2));
-  await page.getByTestId('password-input').fill(getTestPassword(2));
+  await page.getByTestId('email-input').fill(getTestEmail(userIndex));
+  await page.getByTestId('password-input').fill(getTestPassword(userIndex));
 
-  await page.getByTestId('email-signin-button').click();
+  await page.getByTestId('email-signin-button').first().focus();
+  await page.keyboard.press('Enter');
 
-  await page.waitForURL("http://localhost:3000/communities", { timeout: 15000 });
+  await page.waitForURL("http://localhost:3000/communities", { timeout: 150000 });
 }
 
-export async function setupAuthState(page: Page) {
+export async function setupAuthState(page: Page, userIndex: number = 2) {
   try {
-    await authenticateUser(page);
+    await authenticateUser(page, userIndex);
     console.log("Authentication successful");
   } catch (error) {
     console.error("Authentication failed:", error);

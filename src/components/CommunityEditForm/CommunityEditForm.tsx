@@ -171,7 +171,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
         if (Array.isArray(value)) {
           return value.length > 0;
         }
-        return value != "" && value !== null && value !== undefined;
+        return value !== "" && value !== null && value !== undefined;
       })
     );
 
@@ -180,7 +180,6 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
       filteredValues.picture = imageUrl;
     }
 
-    console.log("Updating community:", filteredValues);
     try {
       if (community?.id) {
         const { error } = await supabase
@@ -267,9 +266,9 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     data={COMMUNITY_TYPES}
                     required
                     value={form.values.public ? "public" : "private"}
-                    onChange={(value) =>
-                      form.setFieldValue("public", value === "public")
-                    }
+                    onChange={(value) => {
+                      form.setFieldValue("public", value === "public");
+                    }}
                     data-testid="community-type-select"
                   />
                 </Grid.Col>

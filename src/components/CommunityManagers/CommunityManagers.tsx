@@ -13,16 +13,17 @@ import {
   Table,
   Badge,
   Alert,
+  Avatar,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
 import { CommunityManager } from "@/components/CommunityManage/CommunityManage";
 import RoleMenu, { ROLE_OPTIONS } from "../RoleMenu/RoleMenu";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect } from "react";
 
 interface CommunityManagersProps {
-  communityId: string;
   managers: CommunityManager[];
-  currentUserRole: "owner" | "manager" | "event_creator" | "door_person";
 }
 
 const ROLE_COLORS = {
@@ -32,14 +33,23 @@ const ROLE_COLORS = {
   door_person: "orange",
 } as const;
 
-export function CommunityManagers({
-  managers,
-  currentUserRole,
-}: CommunityManagersProps) {
+export function CommunityManagers({ managers }: CommunityManagersProps) {
   const [opened, { open, close }] = useDisclosure(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUserRole, setCurrentUserRole] = useState<string>("");
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const currentUserRole = managers.find(
+        (manager) => manager.Members.uid === data.user?.id
+      )?.role;
+      setCurrentUserRole(currentUserRole);
+    });
+  }, [managers]);
 
   const canManageManagers =
     currentUserRole === "owner" || currentUserRole === "manager";
@@ -61,17 +71,6 @@ export function CommunityManagers({
 
   return (
     <Stack gap="lg">
-      <Group justify="space-between">
-        {canManageManagers && (
-          <Button
-            // leftSection={<IconPlus size={16} />}
-            onClick={open}
-          >
-            Add Leader
-          </Button>
-        )}
-      </Group>
-
       {!canManageManagers && (
         <Alert color="yellow" title="Limited Access">
           You need owner or manager permissions to manage community roles.
@@ -88,16 +87,24 @@ export function CommunityManagers({
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {managers.map((manager) => (
-              <Table.Tr key={manager.id}>
+            {managers.map((manager, index) => (
+              <Table.Tr
+                key={manager.id || manager.Members?.id || `manager-${index}`}
+              >
                 <Table.Td>
                   <Group gap="sm">
+                    <Avatar
+                      src={manager.Members.avatar_url}
+                      alt={manager.Members.name}
+                      size="sm"
+                      radius="xl"
+                    />
                     <Stack gap={2}>
                       <Text size="sm" fw={500}>
-                        {manager.name}
+                        {manager.Members.name}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {manager.email}
+                        {manager.Members.email}
                       </Text>
                     </Stack>
                   </Group>
@@ -114,7 +121,10 @@ export function CommunityManagers({
                 </Table.Td>
                 {canEditRole(manager) && (
                   <Table.Td>
-                    <RoleMenu manager={manager} currentUserRole={"owner"} />
+                    <RoleMenu
+                      manager={manager}
+                      currentUserRole={currentUserRole}
+                    />
                   </Table.Td>
                 )}
               </Table.Tr>
