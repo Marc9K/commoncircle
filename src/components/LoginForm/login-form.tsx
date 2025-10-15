@@ -159,6 +159,11 @@ export function LoginForm() {
     setError(null);
 
     try {
+      console.log(
+        "Signing in with Google and redirecting to ",
+        window.location.origin,
+        "/communities"
+      );
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
