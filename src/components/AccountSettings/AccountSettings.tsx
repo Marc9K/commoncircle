@@ -14,6 +14,8 @@ import {
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { FcDownload } from "react-icons/fc";
+import { notifications } from "@mantine/notifications";
 
 export interface AccountSettingsProps {
   user: User;
@@ -24,6 +26,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const supabase = createClient();
 
@@ -39,6 +42,46 @@ export function AccountSettings({ user }: AccountSettingsProps) {
       console.error("Error signing out:", error);
     } finally {
       setIsSigningOut(false);
+    }
+  };
+
+  const handleDownloadData = async () => {
+    setIsDownloading(true);
+    try {
+      const { data, error } = await supabase.rpc("get_all_my_data");
+
+      if (error) {
+        console.error("Error fetching data:", error);
+        alert("Failed to download your data. Please try again.");
+        return;
+      }
+
+      // Create a JSON blob and download it
+      const jsonString = JSON.stringify(data, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      // Create a temporary link element and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `my-commoncircle-data-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the URL object
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading data:", error);
+      notifications.show({
+        title: "Error downloading data",
+        message: "Failed to download your data. Please try again.",
+        color: "red",
+      });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -104,7 +147,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             Account Actions
           </Title>
 
-          <Group justify="flex-start">
+          <Group justify="flex-start" gap="md">
             <Button
               variant="filled"
               onClick={handleSignOut}
@@ -112,6 +155,15 @@ export function AccountSettings({ user }: AccountSettingsProps) {
               data-testid="sign-out-button"
             >
               Sign Out
+            </Button>
+            <Button
+              variant="outline"
+              leftSection={<FcDownload size={16} />}
+              onClick={handleDownloadData}
+              loading={isDownloading}
+              data-testid="download-data-button"
+            >
+              Download My Data
             </Button>
           </Group>
         </Stack>
