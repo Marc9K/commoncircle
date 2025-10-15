@@ -25,7 +25,6 @@ interface EventSettingsProps {
     | "event_creator"
     | "door_person"
     | null;
-  onToggleRegistration: (isOpen: boolean) => void;
   onChangeEventType: (type: "public" | "private") => void;
   onDeleteEvent: () => void;
 }

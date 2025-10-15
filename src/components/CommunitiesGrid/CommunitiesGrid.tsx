@@ -2,13 +2,14 @@ import { Grid, Stack } from "@mantine/core";
 import { CommunityCard } from "../CommunityCard/CommunityCard";
 
 interface Community {
-  id?: string | number;
+  id: number;
   name: string;
   memberCount: number;
   tags: string[];
   imageSrc: string;
   pastEvents: number;
   futureEvents: number;
+  picture: string;
 }
 
 interface CommunitiesGridProps {

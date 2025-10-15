@@ -8,7 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function CommunityDetailPage({
   params,
-}: Promise<{ id: string }>) {
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const supabase = await createClient();
   const { data: community, error } = await supabase

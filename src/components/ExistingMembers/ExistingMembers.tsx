@@ -19,17 +19,33 @@ import RoleMenu, { ROLE_OPTIONS } from "../RoleMenu/RoleMenu";
 import { CommunityManager } from "../CommunityManage/CommunityManage";
 
 export interface ExistingMember {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  joinedAt: string;
-  role: "member" | "event_creator" | "door_person";
-  isActive: boolean;
+  role: "owner" | "manager" | "event_creator" | "door_person";
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  };
 }
 
+type PropExistingMember = {
+  role: "owner" | "manager" | "event_creator" | "door_person";
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  }[];
+};
+
 interface ExistingMembersProps {
-  existingMembers: ExistingMember[];
+  existingMembers: PropExistingMember[];
 }
 
 export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
@@ -78,21 +94,21 @@ export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
             </Table.Thead>
             <Table.Tbody>
               {existingMembers.map((member) => (
-                <Table.Tr key={member.id}>
+                <Table.Tr key={member.Members[0]?.uid}>
                   <Table.Td>
                     <Group gap="sm">
                       <Avatar
-                        src={member.Members.avatar_url}
-                        alt={member.Members.name}
+                        src={member.Members[0]?.avatar_url}
+                        alt={member.Members[0]?.name}
                         size="sm"
                         radius="xl"
                       />
                       <div>
                         <Text fw={500} size="sm">
-                          {member.Members.name}
+                          {member.Members[0]?.name}
                         </Text>
                         <Text size="xs" c="dimmed" data-testid="member-email">
-                          {member.Members.email}
+                          {member.Members[0]?.email}
                         </Text>
                       </div>
                     </Group>
@@ -120,7 +136,7 @@ export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
                   </Table.Td>
                   <Table.Td>
                     <RoleMenu
-                      manager={member as CommunityManager}
+                      manager={member as unknown as CommunityManager}
                       currentUserRole={"owner"}
                     />
                   </Table.Td>
@@ -141,8 +157,8 @@ export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
         <Stack gap="md">
           <Text size="sm">
             {selectedRole === "manager"
-              ? `Are you sure you want to promote ${selectedMember?.name} to manager? They will be able to manage community settings and members.`
-              : `Assign a role to ${selectedMember?.name}:`}
+              ? `Are you sure you want to promote ${selectedMember?.Members?.name} to manager? They will be able to manage community settings and members.`
+              : `Assign a role to ${selectedMember?.Members?.name}:`}
           </Text>
 
           {selectedRole !== "manager" && (

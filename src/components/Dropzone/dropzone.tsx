@@ -128,7 +128,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
             {file.type.startsWith("image/") ? (
               <div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center">
                 <Image
-                  src={file.preview}
+                  src={file.preview || ""}
                   alt={file.name}
                   width={40}
                   height={40}

@@ -16,20 +16,40 @@ import { createClient } from "@/lib/supabase/client";
 import { mutate } from "swr";
 
 export interface PendingMember {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  requestedAt: string;
-  message?: string;
+  role: "owner" | "manager" | "event_creator" | "door_person";
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  };
 }
 
+export type PropPendingMember = {
+  role: "owner" | "manager" | "event_creator" | "door_person";
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  };
+};
+
 interface PendingMembersProps {
-  pendingMembers: PendingMember[];
+  pendingMembers: PropPendingMember[];
+  communityId?: string | number;
 }
 
 export function PendingMembers({ pendingMembers }: PendingMembersProps) {
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState<string | number | null>(
+    null
+  );
   const supabase = createClient();
   const handleApprove = async (member: PendingMember) => {
     setIsProcessing(member.Members.id);

@@ -9,7 +9,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function EventDetailPage({
   params,
-}: Promise<{ id: string; eventId: string }>) {
+}: {
+  params: Promise<{ id: string; eventId: string }>;
+}) {
   const { id, eventId } = await params;
   const supabase = await createClient();
 
@@ -21,7 +23,7 @@ export default async function EventDetailPage({
   const { data: member, error: memberError } = await supabase
     .from("Members")
     .select("id")
-    .eq("uid", user.user.id)
+    .eq("uid", user.user?.id)
     .single();
 
   if (memberError) {

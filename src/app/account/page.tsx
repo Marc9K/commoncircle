@@ -1,6 +1,6 @@
 "use server";
 
-import { Account } from "@/components/Account/Account";
+import { Account, PropCommunity } from "@/components/Account/Account";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -39,8 +39,12 @@ export default async function AccountPage() {
   return (
     <Account
       user={user}
-      memberCommunities={memberCommunities ?? []}
-      runningCommunities={runningCommunities ?? []}
+      memberCommunities={
+        (memberCommunities ?? []) as unknown as PropCommunity[]
+      }
+      runningCommunities={
+        (runningCommunities ?? []) as unknown as PropCommunity[]
+      }
       pastEvents={pastEvents ?? []}
       futureEvents={futureEvents ?? []}
     />

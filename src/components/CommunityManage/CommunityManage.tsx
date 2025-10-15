@@ -2,18 +2,26 @@
 
 import { Container, Loader, Stack, Tabs } from "@mantine/core";
 import { CommunityEditForm } from "@/components/CommunityEditForm/CommunityEditForm";
-import { CommunityManagers } from "@/components/CommunityManagers/CommunityManagers";
-import { Members } from "@/components/Members/Members";
+import {
+  CommunityManagers,
+  PropCommunityManager,
+} from "@/components/CommunityManagers/CommunityManagers";
+import { Members, PropExistingMember } from "@/components/Members/Members";
 import { CommunitySettings } from "@/components/CommunitySettings/CommunitySettings";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
+import { PropPendingMember } from "../PendingMembers/PendingMembers";
 
 export interface CommunityManager {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
   role: "owner" | "manager" | "event_creator" | "door_person";
-  joinedAt: string;
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  };
 }
 
 export interface PendingMember {
@@ -33,13 +41,13 @@ export interface ExistingMember {
   joinedAt: string;
   role: "member" | "event_creator" | "door_person";
   isActive: boolean;
+  community: number;
 }
-
 export interface CommunityManageProps {
   community?: CommunityDetailData;
-  managers?: CommunityManager[];
-  pendingMembers?: PendingMember[];
-  existingMembers?: ExistingMember[];
+  managers?: PropCommunityManager[];
+  pendingMembers?: PropPendingMember[];
+  existingMembers?: PropExistingMember[];
 }
 
 export function CommunityManage({
@@ -88,13 +96,16 @@ export function CommunityManage({
           </Tabs.Panel>
 
           <Tabs.Panel value="managers" pt="md" key="managers-tab-panel">
-            <CommunityManagers managers={managers as CommunityManager[]} />
+            <CommunityManagers
+              managers={(managers ?? []) as unknown as PropCommunityManager[]}
+            />
           </Tabs.Panel>
 
           <Tabs.Panel value="members" pt="md">
             <Members
-              pendingMembers={pendingMembers as PendingMember[]}
-              existingMembers={existingMembers as ExistingMember[]}
+              pendingMembers={pendingMembers || []}
+              existingMembers={existingMembers || []}
+              communityId={community?.id}
             />
           </Tabs.Panel>
 

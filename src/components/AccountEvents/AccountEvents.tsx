@@ -11,8 +11,8 @@ export interface UserEvent extends EventCardData {
 export interface AccountEventsProps {
   user: {
     id: string;
-    name: string;
-    email: string;
+    name?: string;
+    email?: string;
   };
   pastEvents?: UserEvent[];
   futureEvents?: UserEvent[];

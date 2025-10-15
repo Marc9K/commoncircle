@@ -9,10 +9,18 @@ import {
 import { AccountEvents, UserEvent } from "../AccountEvents/AccountEvents";
 import { User } from "@supabase/supabase-js";
 
+interface UserWithName extends User {
+  name?: string;
+}
+
+export type PropCommunity = {
+  role: "owner" | "manager" | "event_creator" | "door_person" | "member";
+  community: { id: number; name: string; picture: string };
+};
 export interface AccountProps {
-  user: User;
-  memberCommunities?: Community[];
-  runningCommunities?: Community[];
+  user: UserWithName;
+  memberCommunities?: PropCommunity[];
+  runningCommunities?: PropCommunity[];
   pastEvents?: UserEvent[];
   futureEvents?: UserEvent[];
 }

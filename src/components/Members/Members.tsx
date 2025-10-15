@@ -3,16 +3,27 @@
 import { Tabs } from "@mantine/core";
 import {
   PendingMembers,
-  PendingMember,
+  PropPendingMember,
 } from "../PendingMembers/PendingMembers";
-import {
-  ExistingMembers,
-  ExistingMember,
-} from "../ExistingMembers/ExistingMembers";
+import { ExistingMembers } from "../ExistingMembers/ExistingMembers";
+
+export type PropExistingMember = {
+  role: "owner" | "manager" | "event_creator" | "door_person";
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  }[];
+};
 
 interface MembersProps {
-  pendingMembers: PendingMember[];
-  existingMembers: ExistingMember[];
+  pendingMembers: PropPendingMember[];
+  existingMembers: PropExistingMember[];
+  communityId?: string | number;
 }
 
 export function Members({ pendingMembers, existingMembers }: MembersProps) {
@@ -28,7 +39,9 @@ export function Members({ pendingMembers, existingMembers }: MembersProps) {
       </Tabs.List>
 
       <Tabs.Panel value="pending" pt="md">
-        <PendingMembers pendingMembers={pendingMembers} />
+        <PendingMembers
+          pendingMembers={pendingMembers as unknown as PropPendingMember[]}
+        />
       </Tabs.Panel>
 
       <Tabs.Panel value="existing" pt="md">

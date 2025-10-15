@@ -454,6 +454,10 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         console.error(userError);
         return null;
       }
+      if (!user) {
+        console.error("No user found");
+        return null;
+      }
       const { data: member, error: memberError } = await supabase
         .from("Members")
         .select("id")

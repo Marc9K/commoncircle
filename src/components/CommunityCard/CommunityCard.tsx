@@ -5,7 +5,6 @@ import { Card, Text, Title, Image, Group, Stack } from "@mantine/core";
 import { useEffect, useState, useCallback } from "react";
 
 interface CommunityCardProps {
-  role: string;
   community: {
     id: number;
     name: string;
@@ -29,8 +28,8 @@ export function CommunityCard({
         .select("member(count)")
         .eq("community", id)
         .single();
-      if (data?.member.count) {
-        setMemberCount(data?.member.count);
+      if ((data?.member as unknown as { count: number })?.count) {
+        setMemberCount((data?.member as unknown as { count: number })?.count);
       }
     } catch (error) {
       console.error(error);

@@ -1,6 +1,8 @@
 "use client";
 
 import { CommunityManage } from "@/components/CommunityManage/CommunityManage";
+import { PropCommunityManager } from "@/components/CommunityManagers/CommunityManagers";
+import { PropPendingMember } from "@/components/PendingMembers/PendingMembers";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
@@ -54,14 +56,18 @@ export default function CommunityManagePage() {
   return (
     <CommunityManage
       community={community}
-      managers={members?.filter(
+      managers={(members as unknown as PropCommunityManager[])?.filter(
         (member) =>
           member.role === "manager" ||
           member.role === "owner" ||
           member.role === "event_creator" ||
           member.role === "door_person"
       )}
-      pendingMembers={members?.filter((member) => member.role == undefined)}
+      pendingMembers={
+        members?.filter(
+          (member) => member.role == undefined
+        ) as unknown as PropPendingMember[]
+      }
       existingMembers={members?.filter(
         (member) =>
           member.role === "member" ||

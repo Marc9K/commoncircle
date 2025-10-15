@@ -34,7 +34,7 @@ export interface Attendee {
     name: string;
     email: string;
     avatar_url: string | null;
-  }[];
+  };
 }
 
 interface EventAttendeesProps {
@@ -330,7 +330,7 @@ export function EventAttendees({
     }
 
     const query = searchQuery.toLowerCase();
-    return (attendees || []).filter(
+    return ((attendees || []) as unknown as Attendee[]).filter(
       (attendee) =>
         attendee.Members.name.toLowerCase().includes(query) ||
         attendee.Members.email.toLowerCase().includes(query)
@@ -400,7 +400,7 @@ export function EventAttendees({
             {(attendees || []).map((attendee) => (
               <Grid.Col key={attendee.id} span={{ base: 12, sm: 6 }}>
                 <AttendeeCard
-                  attendee={attendee}
+                  attendee={attendee as unknown as Attendee}
                   currentUserRole={currentUserRole}
                   onCheckIn={async (attendeeId, checkedin) => {
                     await onCheckIn(attendeeId, checkedin);
@@ -428,7 +428,10 @@ export function EventAttendees({
           opened={addModalOpened}
           onClose={() => setAddModalOpened(false)}
           onSubmit={async (attendee) => {
-            await onAddAttendee(attendee);
+            await onAddAttendee({
+              ...attendee,
+              checkedIn: false,
+            });
             mutate("attendees");
           }}
         />

@@ -23,17 +23,22 @@ export interface Community {
   role?: "member" | "admin" | "owner";
 }
 
+type PropCommunity = {
+  role: "owner" | "manager" | "event_creator" | "door_person" | "member";
+  community: { id: number; name: string; picture: string };
+};
+
 export interface AccountCommunitiesProps {
   user: {
     id: string;
-    name: string;
-    email: string;
+    name?: string;
+    email?: string;
   };
-  memberCommunities?: Community[];
-  runningCommunities?: Community[];
+  memberCommunities?: PropCommunity[];
+  runningCommunities?: PropCommunity[];
 }
 
-function CommunityGrid({ communities }: { communities: Community[] }) {
+function CommunityGrid({ communities }: { communities: PropCommunity[] }) {
   return (
     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
       {communities.map((community) => (

@@ -10,12 +10,13 @@ import {
   Button,
   Grid,
 } from "@mantine/core";
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface Community {
+  id?: string | number;
   name: string;
   memberCount: number;
   tags: string[];
@@ -24,13 +25,34 @@ interface Community {
   futureEvents: number;
 }
 
-export default function CommunitiesPage() {
+interface SupabaseCommunity {
+  id: number;
+  name: string;
+  languages: string[];
+  created_at: string;
+  picture: string;
+  description: string;
+  email: string;
+  website: string;
+  established: string;
+  location: string;
+  public: boolean;
+  Circles: { count: number }[];
+  Events: { count: number }[];
+  memberCount: number;
+  tags: string[];
+  imageSrc: string;
+  pastEvents: number;
+  futureEvents: number;
+}
+
+function CommunitiesContent() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string | null>("popular");
 
-  const [communities, setCommunities] = useState<Community[]>([]);
+  const [communities, setCommunities] = useState<SupabaseCommunity[]>([]);
 
   const supabase = createClient();
 
@@ -51,7 +73,7 @@ export default function CommunitiesPage() {
       if (error) {
         console.error(error);
       } else {
-        setCommunities(data);
+        setCommunities(data as SupabaseCommunity[]);
       }
     });
   }, [supabase, search]);
@@ -80,6 +102,7 @@ export default function CommunitiesPage() {
         (a, b) => b.Events?.[0]?.count - a.Events?.[0]?.count
       );
     }
+
     console.log("result", result);
     return result;
   }, [communities, selectedTags, sortBy]);
@@ -127,5 +150,13 @@ export default function CommunitiesPage() {
         <CommunitiesGrid communities={filtered} />
       </Stack>
     </Container>
+  );
+}
+
+export default function CommunitiesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CommunitiesContent />
+    </Suspense>
   );
 }

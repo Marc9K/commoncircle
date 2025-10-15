@@ -32,7 +32,7 @@ const communitySample: CommunityDetailData = {
   website: "https://techmeetup-manchester.com",
   location: "Manchester, UK",
   languages: ["English", "Spanish", "Mandarin", "French"],
-  public: "public",
+  public: true,
   pastEvents: [
     {
       id: 1,
@@ -43,6 +43,7 @@ const communitySample: CommunityDetailData = {
       picture: "./people.jpg",
       tags: ["JavaScript", "Beginner", "Web Development"],
       price: undefined,
+      description: "",
     },
   ],
   futureEvents: [

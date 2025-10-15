@@ -17,13 +17,26 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
-import { CommunityManager } from "@/components/CommunityManage/CommunityManage";
+export type PropCommunityManager = {
+  id: number;
+  role: "owner" | "manager" | "event_creator" | "door_person";
+  created_at: string;
+  community: number;
+  Members: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url: string;
+    uid: string;
+  };
+};
 import RoleMenu, { ROLE_OPTIONS } from "../RoleMenu/RoleMenu";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect } from "react";
+import { CommunityManager } from "../CommunityManage/CommunityManage";
 
 interface CommunityManagersProps {
-  managers: CommunityManager[];
+  managers: PropCommunityManager[];
 }
 
 const ROLE_COLORS = {
@@ -47,7 +60,7 @@ export function CommunityManagers({ managers }: CommunityManagersProps) {
       const currentUserRole = managers.find(
         (manager) => manager.Members.uid === data.user?.id
       )?.role;
-      setCurrentUserRole(currentUserRole);
+      setCurrentUserRole(currentUserRole || "");
     });
   }, [managers, supabase.auth]);
 
@@ -127,7 +140,13 @@ export function CommunityManagers({ managers }: CommunityManagersProps) {
                   <Table.Td>
                     <RoleMenu
                       manager={manager}
-                      currentUserRole={currentUserRole}
+                      currentUserRole={
+                        currentUserRole as
+                          | "owner"
+                          | "manager"
+                          | "event_creator"
+                          | "door_person"
+                      }
                     />
                   </Table.Td>
                 )}
