@@ -7,11 +7,8 @@ import {
   Text,
   List,
   Divider,
-  Group,
-  Button,
   Anchor,
 } from "@mantine/core";
-import Link from "next/link";
 import { FcCheckmark } from "react-icons/fc";
 
 export default function PrivacyPolicy() {
@@ -74,9 +71,9 @@ export default function PrivacyPolicy() {
         <Stack gap="md">
           <Title order={2}>Lawful bases and data protection rights</Title>
           <Text>
-            Under UK data protection law, we must have a "lawful basis" for
-            collecting and using your personal information. There is a list of
-            possible{" "}
+            Under UK data protection law, we must have a &quot;lawful
+            basis&quot; for collecting and using your personal information.
+            There is a list of possible{" "}
             <Anchor
               href="https://ico.org.uk/for-organisations/advice-for-small-organisations/getting-started-with-gdpr/data-protection-principles-definitions-and-key-terms/#lawfulbasis"
               target="_blank"
@@ -84,14 +81,14 @@ export default function PrivacyPolicy() {
               lawful bases
             </Anchor>{" "}
             in the UK GDPR. You can find out more about lawful bases on the
-            ICO's website.
+            ICO&apos;s website.
           </Text>
 
           <Text>
             Which lawful basis we rely on may affect your data protection rights
             which are set out in brief below. You can find out more about your
             data protection rights and the exemptions which may apply on the
-            ICO's website:
+            ICO&apos;s website:
           </Text>
 
           <List withPadding size="lg" icon={<FcCheckmark size={16} />}>
@@ -299,13 +296,13 @@ export default function PrivacyPolicy() {
           </Text>
 
           <Text>
-            If you remain unhappy with how we've used your data after raising a
-            complaint with us, you can also complain to the ICO.
+            If you remain unhappy with how we&apos;ve used your data after
+            raising a complaint with us, you can also complain to the ICO.
           </Text>
 
-          <Text>The ICO's address:</Text>
+          <Text>The ICO&apos;s address:</Text>
           <Text>
-            Information Commissioner's Office
+            Information Commissioner&apos;s Office
             <br />
             Wycliffe House
             <br />

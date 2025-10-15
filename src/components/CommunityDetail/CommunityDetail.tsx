@@ -229,6 +229,10 @@ export default function CommunityDetail({
       console.error(userError);
       return;
     }
+    if (!user) {
+      console.error("No user found");
+      return;
+    }
     console.log(user);
     const { data: member, error: memberError } = await supabase
       .from("Members")

@@ -10,7 +10,6 @@ import {
   Text,
   Title,
   Image,
-  NavLink,
 } from "@mantine/core";
 import Visible from "@/components/Visible/Visible";
 import { CommunitiesGrid } from "@/components/CommunitiesGrid/CommunitiesGrid";
@@ -33,7 +32,7 @@ export default function Home() {
     };
     fetchMembers();
     fetchEvents();
-  }, []);
+  });
   return (
     <Container pt={160}>
       <Stack gap="lg">

@@ -46,7 +46,7 @@ export function Map({
     // Fix for default markers in React-Leaflet
     if (typeof window !== "undefined") {
       import("leaflet").then((L) => {
-        delete (L.Icon.Default.prototype as Record<string, unknown>)
+        delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)
           ._getIconUrl;
         L.Icon.Default.mergeOptions({
           iconRetinaUrl:
