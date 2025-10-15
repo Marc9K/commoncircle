@@ -66,10 +66,8 @@ export function AccountEvents({
     <Stack gap="lg">
       <Tabs defaultValue="future" variant="outline">
         <Tabs.List justify="flex-end">
-          <Tabs.Tab value="future">
-            Upcoming Events ({futureEvents.length})
-          </Tabs.Tab>
-          <Tabs.Tab value="past">Past Events ({pastEvents.length})</Tabs.Tab>
+          <Tabs.Tab value="future">Upcoming ({futureEvents.length})</Tabs.Tab>
+          <Tabs.Tab value="past">Past ({pastEvents.length})</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="future" pt="md">

@@ -103,7 +103,6 @@ export default function NewEventPage() {
         message: "Event created successfully!",
         color: "green",
       });
-      console.log(data);
       router.push(
         `/communities/${communityId}/events/${supabasedata?.id ?? "new"}`
       );

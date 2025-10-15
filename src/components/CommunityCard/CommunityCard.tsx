@@ -9,32 +9,18 @@ interface CommunityCardProps {
     id: number;
     name: string;
     picture: string;
+    membercount?: number;
+    eventcount?: number;
   };
 }
 
 export function CommunityCard({
-  community: { id, name, picture },
+  community: { id, name, picture, membercount, eventcount },
 }: CommunityCardProps) {
   const supabase = createClient();
 
-  const [memberCount, setMemberCount] = useState(0);
   const [pastEvents, setPastEvents] = useState(0);
   const [futureEvents, setFutureEvents] = useState(0);
-
-  const fetchMemberCount = useCallback(async () => {
-    try {
-      const { data } = await supabase
-        .from("Circles")
-        .select("member(count)")
-        .eq("community", id)
-        .single();
-      if ((data?.member as unknown as { count: number })?.count) {
-        setMemberCount((data?.member as unknown as { count: number })?.count);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }, [supabase, id]);
 
   const fetchPastEvents = useCallback(async () => {
     const { data: pastEvents } = await supabase
@@ -54,10 +40,9 @@ export function CommunityCard({
     setFutureEvents(futureEvents?.length || 0);
   }, [supabase, id]);
   useEffect(() => {
-    fetchMemberCount();
     fetchPastEvents();
     fetchFutureEvents();
-  }, [id, fetchMemberCount, fetchPastEvents, fetchFutureEvents]);
+  }, [id, fetchPastEvents, fetchFutureEvents]);
 
   // const { data: memberCount, error: memberCountError } = await supabase
   //   .from("Circles")
@@ -89,7 +74,7 @@ export function CommunityCard({
             {name}
           </Title>
           <Text size="sm" c="dimmed">
-            {memberCount} members
+            {membercount} members
           </Text>
           <Group gap="md">
             <Text size="xs" c="dimmed">

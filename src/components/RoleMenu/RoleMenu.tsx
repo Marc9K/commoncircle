@@ -90,8 +90,6 @@ export default function RoleMenu({ manager }: RoleMenuProps) {
           disabled={manager.role === "owner"}
           data-testid="remove-member-option"
           onClick={async () => {
-            console.log("outcasting", manager.Members.id);
-            console.log("community", manager.community);
             const { error } = await supabase
               .from("Circles")
               .delete()

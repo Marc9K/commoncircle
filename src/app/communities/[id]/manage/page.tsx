@@ -23,7 +23,6 @@ export default function CommunityManagePage() {
       return null;
     }
 
-    console.log(community);
     return community;
   };
 

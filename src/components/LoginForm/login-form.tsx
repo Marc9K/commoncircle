@@ -10,7 +10,8 @@ import { NextResponse } from "next/server";
 export async function createMember(
   next: string,
   supabase?: SupabaseClient,
-  request?: Request
+  request?: Request,
+  cachedAvatarUrl?: string | null
 ) {
   supabase = supabase ?? createClient();
   const {
@@ -30,25 +31,29 @@ export async function createMember(
       .eq("uid", user.id)
       .single();
 
+    // Determine which avatar URL to use (cached or Google)
+    const avatarUrl = cachedAvatarUrl || user.user_metadata?.avatar_url;
+
     // If member doesn't exist
     if (memberError && memberError.code === "PGRST116") {
       console.log("Creating new member for user:", user.id);
-      const { error: insertError } = await supabase.from("Members").insert({
+      await supabase.from("Members").insert({
         uid: user.id,
         name: user.user_metadata?.name,
         email: user.email,
-        avatar_url: user.user_metadata?.avatar_url,
+        avatar_url: avatarUrl,
       });
-
-      if (insertError) {
-        console.error("Error creating member:", insertError);
-      } else {
-        console.log("Member created successfully");
-      }
     } else if (memberError) {
       console.error("Error checking member existence:", memberError);
     } else {
-      console.log("Member already exists");
+      // Member exists - update avatar if we have a cached version
+      if (cachedAvatarUrl) {
+        console.log("Updating existing member avatar with cached version");
+        await supabase
+          .from("Members")
+          .update({ avatar_url: cachedAvatarUrl })
+          .eq("uid", user.id);
+      }
     }
   }
 

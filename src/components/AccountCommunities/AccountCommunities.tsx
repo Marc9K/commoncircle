@@ -25,7 +25,13 @@ export interface Community {
 
 type PropCommunity = {
   role: "owner" | "manager" | "event_creator" | "door_person" | "member";
-  community: { id: number; name: string; picture: string };
+  community: {
+    id: number;
+    name: string;
+    picture: string;
+    membercount?: number;
+    eventcount?: number;
+  };
 };
 
 export interface AccountCommunitiesProps {

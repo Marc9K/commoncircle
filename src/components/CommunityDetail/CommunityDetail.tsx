@@ -16,6 +16,7 @@ import {
   Grid,
   Badge,
   Box,
+  Container,
 } from "@mantine/core";
 import { createClient } from "@/lib/supabase/client";
 
@@ -58,7 +59,6 @@ function CommunityImage({ community }: { community: CommunityDetailData }) {
 }
 
 function CommunityTitle({ community }: { community: CommunityDetailData }) {
-  console.log("Community:", community);
   return (
     <Stack gap={4} miw={300}>
       <Title order={1}>{community.name}</Title>
@@ -203,7 +203,6 @@ export default function CommunityDetail({
   );
 
   const handleJoinRequest = async () => {
-    console.log(community);
     const supabase = createClient();
 
     const { error } = await supabase.rpc("join_community", {
@@ -233,7 +232,7 @@ export default function CommunityDetail({
       console.error("No user found");
       return;
     }
-    console.log(user);
+
     const { data: member, error: memberError } = await supabase
       .from("Members")
       .select("id")
@@ -243,7 +242,6 @@ export default function CommunityDetail({
       console.error(memberError);
       return;
     }
-    console.log(member);
 
     const { error } = await supabase
       .from("Circles")
@@ -257,89 +255,91 @@ export default function CommunityDetail({
   };
 
   return (
-    <Stack gap="lg" mt={120}>
-      <Variable at="md">
-        <Stack>
-          <Group align="flex-start" wrap="nowrap" gap="lg">
-            <CommunityImage community={community} />
-            <Stack gap={6} style={{ flex: 1 }}>
-              <CommunityTitle community={community} />
-              <CommunityMeta community={community} />
-              <CommunityDescription community={community} />
-              <CommunityLocation community={community} />
-              <JoinButton
-                community={community}
-                isMember={isMember}
-                joinRequestPending={joinRequestPending}
-                onJoinRequest={handleJoinRequest}
-                onLeave={handleLeave}
-              />
-            </Stack>
-          </Group>
-        </Stack>
-        <Stack gap="md">
-          <CommunityImage community={community} />
-          <CommunityTitle community={community} />
-          <JoinButton
-            community={community}
-            isMember={isMember}
-            joinRequestPending={joinRequestPending}
-            onJoinRequest={handleJoinRequest}
-            onLeave={handleLeave}
-          />
-          <CommunityDescription community={community} />
-          <CommunityLocation community={community} />
-          <CommunityMeta community={community} />
-        </Stack>
-      </Variable>
-
-      <Tabs defaultValue="future">
-        <Tabs.List>
-          <Tabs.Tab value="future">Upcoming events</Tabs.Tab>
-          <Tabs.Tab value="past">Past events</Tabs.Tab>
-        </Tabs.List>
-
-        <Tabs.Panel value="future" pt="md">
-          <Stack gap="md">
-            <Group justify="space-between" align="center">
-              <Text size="sm" c="dimmed">
-                {community.futureEvents.length} upcoming events
-              </Text>
-              {community.currentUserRole &&
-                (community.currentUserRole === "owner" ||
-                  community.currentUserRole === "manager" ||
-                  community.currentUserRole === "event_creator") && (
-                  <Button
-                    variant="filled"
-                    onClick={() =>
-                      typeof window !== "undefined" &&
-                      (window.location.href = `/communities/${community.id}/events/new`)
-                    }
-                  >
-                    Create Event
-                  </Button>
-                )}
+    <Container size="md" py="xl">
+      <Stack gap="lg">
+        <Variable at="md">
+          <Stack>
+            <Group align="flex-start" wrap="nowrap" gap="lg">
+              <CommunityImage community={community} />
+              <Stack gap={6} style={{ flex: 1 }}>
+                <CommunityTitle community={community} />
+                <CommunityMeta community={community} />
+                <CommunityDescription community={community} />
+                <CommunityLocation community={community} />
+                <JoinButton
+                  community={community}
+                  isMember={isMember}
+                  joinRequestPending={joinRequestPending}
+                  onJoinRequest={handleJoinRequest}
+                  onLeave={handleLeave}
+                />
+              </Stack>
             </Group>
+          </Stack>
+          <Stack gap="md">
+            <CommunityImage community={community} />
+            <CommunityTitle community={community} />
+            <JoinButton
+              community={community}
+              isMember={isMember}
+              joinRequestPending={joinRequestPending}
+              onJoinRequest={handleJoinRequest}
+              onLeave={handleLeave}
+            />
+            <CommunityDescription community={community} />
+            <CommunityLocation community={community} />
+            <CommunityMeta community={community} />
+          </Stack>
+        </Variable>
+
+        <Tabs defaultValue="future">
+          <Tabs.List>
+            <Tabs.Tab value="future">Upcoming</Tabs.Tab>
+            <Tabs.Tab value="past">Past</Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="future" pt="md">
+            <Stack gap="md">
+              <Group justify="space-between" align="center">
+                <Text size="sm" c="dimmed">
+                  {community.futureEvents.length} upcoming events
+                </Text>
+                {community.currentUserRole &&
+                  (community.currentUserRole === "owner" ||
+                    community.currentUserRole === "manager" ||
+                    community.currentUserRole === "event_creator") && (
+                    <Button
+                      variant="filled"
+                      onClick={() =>
+                        typeof window !== "undefined" &&
+                        (window.location.href = `/communities/${community.id}/events/new`)
+                      }
+                    >
+                      Create Event
+                    </Button>
+                  )}
+              </Group>
+              <Grid>
+                {community.futureEvents.map((event) => (
+                  <Grid.Col key={event.id} span={{ base: 12, sm: 6, md: 4 }}>
+                    <EventCard event={event} />
+                  </Grid.Col>
+                ))}
+              </Grid>
+            </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="past" pt="md">
             <Grid>
-              {community.futureEvents.map((event) => (
+              {community.pastEvents.map((event) => (
                 <Grid.Col key={event.id} span={{ base: 12, sm: 6, md: 4 }}>
                   <EventCard event={event} />
                 </Grid.Col>
               ))}
             </Grid>
-          </Stack>
-        </Tabs.Panel>
-
-        <Tabs.Panel value="past" pt="md">
-          <Grid>
-            {community.pastEvents.map((event) => (
-              <Grid.Col key={event.id} span={{ base: 12, sm: 6, md: 4 }}>
-                <EventCard event={event} />
-              </Grid.Col>
-            ))}
-          </Grid>
-        </Tabs.Panel>
-      </Tabs>
-    </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </Stack>
+    </Container>
   );
 }

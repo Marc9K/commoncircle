@@ -21,6 +21,7 @@ export default function Home() {
   const supabase = createClient();
   const [members, setMembers] = useState(0);
   const [events, setEvents] = useState(0);
+  const [communityGrowth, setCommunityGrowth] = useState(0);
   useEffect(() => {
     const fetchMembers = async () => {
       const { data: members } = await supabase.rpc("total_auth_users");
@@ -30,8 +31,16 @@ export default function Home() {
       const { data: events } = await supabase.rpc("total_events_hosted");
       setEvents(events);
     };
+    const fetchCommunityGrowth = async () => {
+      const { data: communityGrowth } = await supabase.rpc(
+        "top_community_monthly_growth"
+      );
+      console.log(communityGrowth);
+      setCommunityGrowth(communityGrowth?.[0]?.growth_ratio);
+    };
     fetchMembers();
     fetchEvents();
+    fetchCommunityGrowth();
   });
   return (
     <Container pt={160}>
@@ -80,7 +89,9 @@ export default function Home() {
             <Card withBorder padding="lg" radius="md">
               <Stack gap="xs">
                 <Image src="./people.jpg" radius="md" alt="Community members" />
-                <Title order={2}>Top community growth +32%</Title>
+                <Title order={2}>
+                  Top community growth +{communityGrowth * 100}%
+                </Title>
               </Stack>
             </Card>
           </Grid.Col>

@@ -9,11 +9,15 @@ import {
   MultiSelect,
   Button,
   Grid,
+  Loader,
+  Center,
+  Text,
 } from "@mantine/core";
-import { useMemo, useState, Suspense } from "react";
+import { useMemo, useState, Suspense, use } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 
 interface Community {
   id?: string | number;
@@ -53,36 +57,79 @@ function CommunitiesContent() {
   const [sortBy, setSortBy] = useState<string | null>("popular");
 
   const [communities, setCommunities] = useState<SupabaseCommunity[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { ref: loadMoreRef, isIntersecting } = useIntersectionObserver();
 
   const supabase = createClient();
 
-  useEffect(() => {
-    let query = supabase
-      .from("communities")
-      .select(
-        "id, name, languages, created_at, picture, description, email, website, established, location, public, Circles(count), Events(count)"
-      );
+  const fetchCommunities = async (page: number, reset: boolean = false) => {
+    if (loading) return;
+
+    setLoading(true);
+    const limit = 10;
+    const offset = page * limit;
+
+    let query = supabase.from("communities_with_counts").select("*");
 
     if (search && search.trim() !== "") {
       query = query.textSearch("name", search, {
         type: "websearch",
       });
     }
+    if (sortBy === "popular") {
+      query = query.order("membercount", { ascending: false });
+    } else if (sortBy === "eventful") {
+      query = query.order("eventcount", { ascending: false });
+    }
 
-    query.then(({ data, error }) => {
+    query = query.range(offset, offset + limit - 1);
+
+    try {
+      const { data, error } = await query;
       if (error) {
         console.error(error);
       } else {
-        setCommunities(data as SupabaseCommunity[]);
+        const newCommunities = data as SupabaseCommunity[];
+        console.log("New communities:", newCommunities);
+        if (reset) {
+          setCommunities(newCommunities);
+        } else {
+          setCommunities((prev) => [...prev, ...newCommunities]);
+        }
+        setHasMore(newCommunities.length === limit);
       }
-    });
-  }, [supabase, search]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const allTags = useMemo(() => {
-    const tags = new Set<string>();
-    for (const c of communities) c.languages?.forEach((t) => tags.add(t));
-    return Array.from(tags).sort();
-  }, [communities]);
+  const [allTags, setAllTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      const { data: languages } = await supabase.rpc(
+        "distinct_community_languages"
+      );
+      setAllTags(languages || []);
+    };
+    fetchLanguages();
+  });
+
+  useEffect(() => {
+    setCurrentPage(0);
+    setHasMore(true);
+    fetchCommunities(0, true);
+  }, [supabase, search, sortBy]);
+
+  useEffect(() => {
+    if (isIntersecting && hasMore && !loading) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchCommunities(nextPage, false);
+    }
+  }, [isIntersecting, hasMore, loading, currentPage]);
 
   const filtered = useMemo(() => {
     let result = communities;
@@ -93,17 +140,16 @@ function CommunitiesContent() {
       );
     }
 
-    if (sortBy === "popular") {
-      result = [...result].sort(
-        (a, b) => a.Circles?.[0]?.count - b.Circles?.[0]?.count
-      );
-    } else if (sortBy === "eventful") {
-      result = [...result].sort(
-        (a, b) => b.Events?.[0]?.count - a.Events?.[0]?.count
-      );
-    }
+    // if (sortBy === "popular") {
+    //   result = [...result].sort(
+    //     (a, b) => a.Circles?.[0]?.count - b.Circles?.[0]?.count
+    //   );
+    // } else if (sortBy === "eventful") {
+    //   result = [...result].sort(
+    //     (a, b) => b.Events?.[0]?.count - a.Events?.[0]?.count
+    //   );
+    // }
 
-    console.log("result", result);
     return result;
   }, [communities, selectedTags, sortBy]);
 
@@ -113,7 +159,7 @@ function CommunitiesContent() {
         <Grid style={{ overflow: "hidden" }}>
           <Grid.Col>
             <MultiSelect
-              placeholder="Filter by tags"
+              placeholder="Filter by languages"
               data={allTags}
               value={selectedTags}
               onChange={setSelectedTags}
@@ -148,6 +194,28 @@ function CommunitiesContent() {
         </Grid>
 
         <CommunitiesGrid communities={filtered} />
+
+        {/* Intersection observer trigger - invisible element to detect when to load more */}
+        {hasMore && <div ref={loadMoreRef} style={{ height: "1px" }} />}
+
+        {loading && (
+          <Center py="xl">
+            <Stack align="center" gap="sm">
+              <Loader size="sm" />
+              <Text size="sm" c="dimmed">
+                Loading more communities...
+              </Text>
+            </Stack>
+          </Center>
+        )}
+
+        {!hasMore && communities.length > 0 && (
+          <Center py="xl">
+            <Text size="sm" c="dimmed">
+              No more communities to load
+            </Text>
+          </Center>
+        )}
       </Stack>
     </Container>
   );

@@ -11,11 +11,13 @@ export function useScrollToBottom() {
       
       // Check if we're at the bottom (with a small tolerance)
       const isAtBottom = scrollTop + windowHeight >= documentHeight - 10;
-      setIsAtBottom(isAtBottom);
+      
+      // Only trigger if there's enough content to scroll through
+      // This prevents triggering on pages with minimal content
+      const hasScrollableContent = documentHeight > windowHeight + 1;
+      
+      setIsAtBottom(isAtBottom && hasScrollableContent);
     };
-
-    // Initial check
-    handleScroll();
 
     // Add scroll listener
     window.addEventListener('scroll', handleScroll);

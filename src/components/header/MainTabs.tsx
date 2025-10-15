@@ -7,11 +7,11 @@ import {
   VisuallyHidden,
   Stack,
 } from "@mantine/core";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FcSearch } from "react-icons/fc";
 import classes from "./Header.module.css";
 import Variable from "../Variable/Variable";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 const tabs = [
   { value: "/", label: "Home" },
@@ -53,7 +53,8 @@ function TheTabs() {
 
 function Input() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   return (
     <TextInput
       placeholder="Search"
@@ -91,7 +92,7 @@ function FullTabs() {
   );
 }
 
-export default function MainTabs() {
+function MainTabs() {
   return (
     <Container size="md">
       <Variable at="xs">
@@ -99,5 +100,13 @@ export default function MainTabs() {
         {CompactTabs()}
       </Variable>
     </Container>
+  );
+}
+
+export default function MainTabsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MainTabs />
+    </Suspense>
   );
 }

@@ -224,7 +224,6 @@ function AddAttendeeModal({
 
   const handleSubmit = () => {
     if (formData.name && formData.email) {
-      console.log("Submitting form:", formData);
       onSubmit({
         name: formData.name,
         email: formData.email,

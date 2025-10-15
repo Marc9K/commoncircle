@@ -35,8 +35,6 @@ export function Account({
   return (
     <Container size="lg" py="xl">
       <Stack gap="xl">
-        <Title order={1}>Account</Title>
-
         <Tabs defaultValue="communities" variant="outline">
           <Tabs.List justify="flex-end">
             <Tabs.Tab value="communities" data-testid="communities-tab">

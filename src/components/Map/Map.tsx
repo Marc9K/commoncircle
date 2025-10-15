@@ -70,7 +70,6 @@ export function Map({
 
       try {
         // Using OpenStreetMap Nominatim API for geocoding
-        console.log("Geocoding location:", location);
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
             location

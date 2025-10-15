@@ -24,7 +24,7 @@ export function CommunitiesGrid({
   const displayCommunities = maxCommunities
     ? communities.slice(0, maxCommunities)
     : communities;
-  console.log(displayCommunities);
+
   return (
     <Stack gap="lg">
       <Grid>

@@ -513,13 +513,12 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     //       : attendee
     //   )
     // );
-    console.log(attendeeId, checkedin);
-    const { error } = await supabase
+
+    await supabase
       .from("Attendees")
       .update({ checkedin: checkedin })
       .eq("member", attendeeId)
       .eq("event", event.id);
-    console.log(error);
   };
 
   const handleCancel = async (attendeeId: string) => {
@@ -552,7 +551,6 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     name: string;
     email: string;
   }) => {
-    console.log("Adding attendee:", newAttendee);
     const { data, error } = await supabase
       .from("Members")
       .insert({
@@ -563,16 +561,14 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     if (error) {
       console.error(error);
     }
-    console.log("Added attendee:", data);
+
     if (data) {
-      console.log("Adding attendee to attendees table:", event.id);
       const { error: attendeeError } = await supabase
         .from("Attendees")
         .insert({ member: data[0].id, event: event.id });
       if (attendeeError) {
         console.error(attendeeError);
       }
-      console.log("Added attendee to attendees table:", attendeeError);
     }
   };
 
@@ -660,7 +656,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     </>
   );
   return (
-    <Container size="md" py="xl" mt={80}>
+    <Container size="md" py="xl">
       <Stack gap="xl">
         <EventImage event={event} />
         {(event.currentUserRole === "owner" ||
