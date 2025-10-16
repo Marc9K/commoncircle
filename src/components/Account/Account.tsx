@@ -1,11 +1,8 @@
 "use client";
 
-import { Container, Tabs, Title, Stack } from "@mantine/core";
+import { Container, Tabs, Stack } from "@mantine/core";
 import { AccountSettings } from "../AccountSettings/AccountSettings";
-import {
-  AccountCommunities,
-  Community,
-} from "../AccountCommunities/AccountCommunities";
+import { AccountCommunities } from "../AccountCommunities/AccountCommunities";
 import { AccountEvents, UserEvent } from "../AccountEvents/AccountEvents";
 import { User } from "@supabase/supabase-js";
 
