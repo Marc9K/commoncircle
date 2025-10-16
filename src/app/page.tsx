@@ -56,7 +56,7 @@ export default function Home() {
     fetchCommunities();
   });
   return (
-    <Container>
+    <Container mt="sm">
       <Stack gap="lg">
         <Stack gap={8}>
           <Title order={1}>Connect, Learn, Grow Together</Title>

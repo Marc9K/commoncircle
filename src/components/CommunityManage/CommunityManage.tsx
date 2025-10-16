@@ -65,7 +65,7 @@ export function CommunityManage({
   }
 
   return (
-    <Container size="lg" mt={100}>
+    <Container size="lg" mt={10}>
       <Stack gap="lg">
         <Tabs defaultValue="details">
           <Tabs.List>
@@ -106,6 +106,7 @@ export function CommunityManage({
               pendingMembers={pendingMembers || []}
               existingMembers={existingMembers || []}
               communityId={community?.id}
+              isPublic={community?.public || true}
             />
           </Tabs.Panel>
 

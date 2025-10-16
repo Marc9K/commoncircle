@@ -15,9 +15,10 @@ import {
   MultiSelect,
   Grid,
   Alert,
+  TagsInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
 import { createClient } from "@/lib/supabase/client";
@@ -27,24 +28,6 @@ interface CommunityEditFormProps {
   community?: CommunityDetailData;
 }
 
-const LANGUAGE_OPTIONS = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Italian",
-  "Portuguese",
-  "Dutch",
-  "Polish",
-  "Russian",
-  "Chinese",
-  "Japanese",
-  "Korean",
-  "Arabic",
-  "Hindi",
-  "Other",
-];
-
 const COMMUNITY_TYPES = [
   { value: "public", label: "Public - Anyone can join" },
   { value: "private", label: "Private - Requires approval" },
@@ -52,12 +35,25 @@ const COMMUNITY_TYPES = [
 
 export function CommunityEditForm({ community }: CommunityEditFormProps) {
   const router = useRouter();
+  const [languages, setLanguages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(
     community?.picture ?? null
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      const { data: languages } = await supabase.rpc(
+        "distinct_community_languages"
+      );
+      setLanguages(languages);
+    };
+    fetchLanguages();
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -228,6 +224,8 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                       alt="Community preview"
                       width={200}
                       height={120}
+                      mah={200}
+                      maw={200}
                       radius="md"
                       fit="cover"
                     />
@@ -341,11 +339,10 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
             <Stack gap="md">
               <Title order={3}>Languages Spoken</Title>
 
-              <MultiSelect
+              <TagsInput
                 label="Languages"
                 placeholder="Select languages spoken in your community"
-                data={LANGUAGE_OPTIONS}
-                searchable
+                data={languages}
                 clearable
                 {...form.getInputProps("languages")}
                 data-testid="languages-select"

@@ -302,14 +302,16 @@ export function EventAttendees({
     const { data: attendees, error: attendeesError } = await supabase
       .from("Attendees")
       .select(
-        "id, created_at, checkedin, paid, member, Members (id, name, email, avatar_url)"
+        "id, created_at, checkedin, paid, member, Members(id, name, email, avatar_url)"
       )
-      .eq("event", eventId);
+      .eq("event", eventId)
+      .order("created_at", { ascending: false });
 
     if (attendeesError) {
       console.error(attendeesError);
     }
     // setAttendees(attendees || []);
+    console.log(attendees);
     return attendees || [];
   };
   const { data: attendees = [] } = useSWR("attendees", fetchAttendees);

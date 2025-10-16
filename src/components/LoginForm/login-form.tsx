@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { Button } from "@mantine/core";
+import { Anchor, Button, Checkbox, Text } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
@@ -156,6 +156,7 @@ function EmailLoginForm({
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
 
   const handleSocialLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,11 +208,21 @@ export function LoginForm() {
         <Button
           type="submit"
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || !consentGiven}
           data-testid="google-signin-button"
         >
           {isLoading ? "Logging in..." : "Sign in with Google"}
         </Button>
+        <Checkbox
+          label={
+            <Text>
+              I consent to the <Anchor href="/privacy">privacy policy</Anchor>{" "}
+              terms
+            </Text>
+          }
+          checked={consentGiven}
+          onChange={(e) => setConsentGiven(e.target.checked)}
+        />
       </form>
     </div>
   );

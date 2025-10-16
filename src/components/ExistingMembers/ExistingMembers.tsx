@@ -41,7 +41,7 @@ type PropExistingMember = {
     email: string;
     avatar_url: string;
     uid: string;
-  }[];
+  };
 };
 
 interface ExistingMembersProps {
@@ -94,21 +94,21 @@ export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
             </Table.Thead>
             <Table.Tbody>
               {existingMembers.map((member) => (
-                <Table.Tr key={member.Members[0]?.uid}>
+                <Table.Tr key={member.Members?.uid}>
                   <Table.Td>
                     <Group gap="sm">
                       <Avatar
-                        src={member.Members[0]?.avatar_url}
-                        alt={member.Members[0]?.name}
+                        src={member.Members?.avatar_url}
+                        alt={member.Members?.name}
                         size="sm"
                         radius="xl"
                       />
                       <div>
                         <Text fw={500} size="sm">
-                          {member.Members[0]?.name}
+                          {member.Members?.name}
                         </Text>
                         <Text size="xs" c="dimmed" data-testid="member-email">
-                          {member.Members[0]?.email}
+                          {member.Members?.email}
                         </Text>
                       </div>
                     </Group>

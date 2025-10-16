@@ -225,7 +225,8 @@ function EventTags({ event }: { event: EventDetailData }) {
 }
 
 function EventCapacity({ event }: { event: EventDetailData }) {
-  if (!event.capacity) return null;
+  if (!event.capacity || (event.finish && new Date(event.finish) < new Date()))
+    return null;
 
   const spotsLeft = event.capacity - (event.attendees || 0);
 
@@ -263,7 +264,7 @@ function RegistrationButton({
   payWhatYouCanAmount?: number;
   onPayWhatYouCanAmountChange?: (amount: number) => void;
 }) {
-  if (!memberId) {
+  if (!memberId || (!event.currentUserRole && !event.public)) {
     return null;
   }
   const isManager =
@@ -331,9 +332,11 @@ function RegistrationButton({
   if (isRegistered) {
     return (
       <Stack gap="sm">
-        <Button variant="light" color="red" onClick={onUnregister}>
-          Unregister
-        </Button>
+        {event.finish && new Date(event.finish) > new Date() && (
+          <Button variant="light" color="red" onClick={onUnregister}>
+            Unregister
+          </Button>
+        )}
         <Button
           variant="outline"
           color="blue"
@@ -702,7 +705,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
             </Tabs.Panel>
           </Tabs>
         )}
-        {(eventType === "public" || event.currentUserRole === "member") &&
+        {(!event.currentUserRole || event.currentUserRole === "member") &&
           details}
       </Stack>
     </Container>

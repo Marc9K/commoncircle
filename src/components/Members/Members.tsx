@@ -24,9 +24,17 @@ interface MembersProps {
   pendingMembers: PropPendingMember[];
   existingMembers: PropExistingMember[];
   communityId?: string | number;
+  isPublic: boolean;
 }
 
-export function Members({ pendingMembers, existingMembers }: MembersProps) {
+export function Members({
+  pendingMembers,
+  existingMembers,
+  isPublic,
+}: MembersProps) {
+  if (isPublic) {
+    return <ExistingMembers existingMembers={existingMembers} />;
+  }
   return (
     <Tabs defaultValue="pending">
       <Tabs.List>
