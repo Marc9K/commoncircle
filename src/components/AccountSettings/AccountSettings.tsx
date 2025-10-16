@@ -92,14 +92,25 @@ export function AccountSettings({ user }: AccountSettingsProps) {
 
     setIsDeleting(true);
     try {
-      // Note: This would typically call a server action or API route
-      // to properly delete the user account from both auth and database
-      console.log("Delete account functionality would be implemented here");
+      const { error } = await supabase.rpc("delete_my_data");
+      if (error) {
+        console.error("Error deleting member:", error);
+        notifications.show({
+          title: "Error deleting account",
+          message: "Failed to delete your account. Please try again.",
+          color: "red",
+        });
+      } else {
+        notifications.show({
+          title: "Account deleted",
+          message: "Your account has been deleted.",
+          color: "green",
+        });
 
-      // For now, just sign out
-      await supabase.auth.signOut();
-      if (typeof window !== "undefined") {
-        window.location.href = "/";
+        await supabase.auth.signOut();
+        if (typeof window !== "undefined") {
+          window.location.href = "/";
+        }
       }
     } catch (error) {
       console.error("Error deleting account:", error);

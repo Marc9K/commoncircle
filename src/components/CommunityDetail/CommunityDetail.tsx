@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { EventCard, EventCardData } from "@/components/EventCard/EventCard";
 import Variable from "@/components/Variable/Variable";
@@ -107,17 +107,22 @@ function CommunityMeta({ community }: { community: CommunityDetailData }) {
 
 function JoinButton({
   community,
+  member,
   isMember,
   joinRequestPending,
   onJoinRequest,
   onLeave,
 }: {
   community: CommunityDetailData;
+  member: { id: string } | null;
   isMember: boolean;
   joinRequestPending: boolean;
   onJoinRequest: () => void;
   onLeave: () => void;
 }) {
+  if (!member) {
+    return null;
+  }
   const isManager =
     community.currentUserRole === "owner" ||
     community.currentUserRole === "manager";
@@ -197,14 +202,24 @@ export default function CommunityDetail({
 }: {
   community: CommunityDetailData;
 }) {
+  const [member, setMember] = useState<{ id: string } | null>(null);
   const [isMember, setIsMember] = useState<boolean>(community.isMember);
   const [joinRequestPending, setJoinRequestPending] = useState<boolean>(
     community.joinRequestPending || false
   );
+  const supabase = createClient();
+  useEffect(() => {
+    const fetchMember = async () => {
+      const { data: member, error: memberError } =
+        await supabase.auth.getUser();
+      if (member && !memberError) {
+        setMember(member.user);
+      }
+    };
+    fetchMember();
+  });
 
   const handleJoinRequest = async () => {
-    const supabase = createClient();
-
     const { error } = await supabase.rpc("join_community", {
       community_id: community.id,
     });
@@ -219,7 +234,6 @@ export default function CommunityDetail({
   };
 
   const handleLeave = async () => {
-    const supabase = createClient();
     const {
       data: { user },
       error: userError,
@@ -267,6 +281,7 @@ export default function CommunityDetail({
                 <CommunityDescription community={community} />
                 <CommunityLocation community={community} />
                 <JoinButton
+                  member={member}
                   community={community}
                   isMember={isMember}
                   joinRequestPending={joinRequestPending}
@@ -280,6 +295,7 @@ export default function CommunityDetail({
             <CommunityImage community={community} />
             <CommunityTitle community={community} />
             <JoinButton
+              member={member}
               community={community}
               isMember={isMember}
               joinRequestPending={joinRequestPending}

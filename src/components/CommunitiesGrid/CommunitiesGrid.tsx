@@ -1,7 +1,7 @@
 import { Grid, Stack } from "@mantine/core";
 import { CommunityCard } from "../CommunityCard/CommunityCard";
 
-interface Community {
+export interface Community {
   id: number;
   name: string;
   memberCount: number;

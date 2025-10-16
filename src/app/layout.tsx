@@ -20,6 +20,7 @@ import { Notifications } from "@mantine/notifications";
 import { theme } from "../theme";
 import { Header } from "@/components/header/Header";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
+import { useRef, useEffect, useState } from "react";
 
 // export const metadata: Metadata = {
 //   title: "CommonCircle",
@@ -32,6 +33,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const isAtBottom = useScrollToBottom();
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(140);
+
+  useEffect(() => {
+    if (headerRef.current) {
+      const height = headerRef.current.offsetHeight;
+      setHeaderHeight(height);
+    }
+  }, []);
 
   return (
     <html lang="en" {...mantineHtmlProps}>
@@ -42,11 +52,11 @@ export default function RootLayout({
         <MantineProvider theme={theme} defaultColorScheme="light">
           <Notifications />
           <AppShell
-            header={{ height: 60, offset: true }}
+            header={{ offset: true, height: headerHeight }}
             footer={{ collapsed: !isAtBottom, height: 60 }}
           >
             <AppShellHeader>
-              <Header />
+              <Header ref={headerRef} />
             </AppShellHeader>
             <AppShellMain>{children}</AppShellMain>
             <AppShellFooter>

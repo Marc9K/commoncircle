@@ -153,11 +153,16 @@ function CommunitiesContent() {
     return result;
   }, [communities, selectedTags, sortBy]);
 
+  const sm = 5;
+  const md = 4;
+  const base = 12;
+  const xs = 12;
+
   return (
-    <Container mt={100} style={{ overflow: "hidden" }}>
+    <Container mt={15} style={{ overflow: "hidden" }}>
       <Stack gap="lg">
         <Grid style={{ overflow: "hidden" }}>
-          <Grid.Col>
+          <Grid.Col span={{ base, sm, md, xs }}>
             <MultiSelect
               placeholder="Filter by languages"
               data={allTags}
@@ -165,10 +170,10 @@ function CommunitiesContent() {
               onChange={setSelectedTags}
               searchable
               clearable
-              w={{ base: "100%", sm: 320 }}
+              w={{ base: "100%", sm: 300 }}
             />
           </Grid.Col>
-          <Grid.Col>
+          <Grid.Col span={{ base, sm, md, xs }}>
             <Select
               placeholder="Sort by"
               value={sortBy}
@@ -180,17 +185,19 @@ function CommunitiesContent() {
               w={{ base: "100%", sm: 220 }}
             />
           </Grid.Col>
-          <Group wrap="wrap" gap="sm">
-            <Button
-              variant="light"
-              onClick={() => {
-                setSelectedTags([]);
-                setSortBy("popular");
-              }}
-            >
-              Reset
-            </Button>
-          </Group>
+          <Grid.Col span={{ base, sm, md, xs }}>
+            <Group wrap="wrap" gap="sm">
+              <Button
+                variant="light"
+                onClick={() => {
+                  setSelectedTags([]);
+                  setSortBy("popular");
+                }}
+              >
+                Reset
+              </Button>
+            </Group>
+          </Grid.Col>
         </Grid>
 
         <CommunitiesGrid communities={filtered} />

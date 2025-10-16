@@ -27,25 +27,29 @@ export default async function CommunityDetailPage({
     community_id: id,
   });
 
-  const { data: user, error: userError } = await supabase.auth.getUser();
-  if (userError) {
-    return notFound();
-  }
-  const { data: member, error: memberError } = await supabase
-    .from("Members")
-    .select("*")
-    .eq("uid", user.user.id)
-    .single();
-  if (memberError) {
-    return notFound();
-  }
+  let circle: {
+    role: "owner" | "manager" | "event_creator" | "door_person" | "member";
+  } | null = null;
 
-  const { data: circle } = await supabase
-    .from("Circles")
-    .select("*")
-    .eq("community", id)
-    .eq("member", member.id)
-    .single();
+  const { data: user, error: userError } = await supabase.auth.getUser();
+  if (!userError && user.user) {
+    const { data: member, error: memberError } = await supabase
+      .from("Members")
+      .select("*")
+      .eq("uid", user.user.id)
+      .single();
+    if (!memberError && member) {
+      const { data } = await supabase
+        .from("Circles")
+        .select("*")
+        .eq("community", id)
+        .eq("member", member.id)
+        .single();
+      if (!error && data) {
+        circle = data;
+      }
+    }
+  }
 
   const { data: futureEvents, error: eventsError } = await supabase.rpc(
     "get_future_events",

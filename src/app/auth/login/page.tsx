@@ -1,4 +1,3 @@
-import { Header } from "@/components/header/Header";
 import { LoginForm } from "@/components/LoginForm/login-form";
 import { createClient } from "@/lib/supabase/server";
 import { Stack } from "@mantine/core";

@@ -247,6 +247,7 @@ function EventCapacity({ event }: { event: EventDetailData }) {
 }
 
 function RegistrationButton({
+  memberId,
   event,
   isRegistered,
   onRegister,
@@ -254,6 +255,7 @@ function RegistrationButton({
   payWhatYouCanAmount,
   onPayWhatYouCanAmountChange,
 }: {
+  memberId: number | null;
   event: EventDetailData;
   isRegistered: boolean;
   onRegister: () => void;
@@ -261,6 +263,9 @@ function RegistrationButton({
   payWhatYouCanAmount?: number;
   onPayWhatYouCanAmountChange?: (amount: number) => void;
 }) {
+  if (!memberId) {
+    return null;
+  }
   const isManager =
     event.currentUserRole === "owner" ||
     event.currentUserRole === "manager" ||
@@ -444,20 +449,12 @@ export function EventDetail({ event }: { event: EventDetailData }) {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    const fetchMember = async () => {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError) {
-        console.error(userError);
-        return null;
-      }
-      if (!user) {
-        console.error("No user found");
-        return null;
-      }
+  const fetchMember = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (user && !userError) {
       const { data: member, error: memberError } = await supabase
         .from("Members")
         .select("id")
@@ -468,7 +465,9 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         return null;
       }
       setMemberId(member.id);
-    };
+    }
+  };
+  useEffect(() => {
     fetchMember();
   }, [supabase]);
 
@@ -620,6 +619,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
                   <Divider />
                   <EventCapacity event={event} />
                   <RegistrationButton
+                    memberId={memberId}
                     event={event}
                     isRegistered={isRegistered}
                     onRegister={handleRegister}
@@ -640,6 +640,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
             <EventPrice event={event} />
             <EventCapacity event={event} />
             <RegistrationButton
+              memberId={memberId}
               event={event}
               isRegistered={isRegistered}
               onRegister={handleRegister}
@@ -655,6 +656,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       <EventTags event={event} />
     </>
   );
+
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">
@@ -700,7 +702,8 @@ export function EventDetail({ event }: { event: EventDetailData }) {
             </Tabs.Panel>
           </Tabs>
         )}
-        {event.currentUserRole === "member" && details}
+        {(eventType === "public" || event.currentUserRole === "member") &&
+          details}
       </Stack>
     </Container>
   );

@@ -19,15 +19,34 @@ export default async function EventDetailPage({
     return notFound();
   }
 
-  const { data: user } = await supabase.auth.getUser();
-  const { data: member, error: memberError } = await supabase
-    .from("Members")
-    .select("id")
-    .eq("uid", user.user?.id)
-    .single();
+  const { data: user, error: userError } = await supabase.auth.getUser();
+  let member: { id: number } | null = null;
+  let currentUserRole: {
+    role: "owner" | "manager" | "event_creator" | "door_person" | "member";
+  } | null = null;
+  if (user && user.user && !userError) {
+    const { data: memberData, error: memberError } = await supabase
+      .from("Members")
+      .select("id")
+      .eq("uid", user.user?.id)
+      .single();
 
-  if (memberError) {
-    return notFound();
+    if (memberError) {
+      return notFound();
+    }
+    if (memberData) {
+      member = memberData;
+      const { data: currentUserRoleData } = await supabase
+        .from("Circles")
+        .select("role")
+        .eq("community", id)
+        .eq("member", member.id)
+        .single();
+
+      if (currentUserRoleData) {
+        currentUserRole = currentUserRoleData;
+      }
+    }
   }
 
   const { data: event } = await supabase
@@ -58,21 +77,9 @@ export default async function EventDetailPage({
     return notFound();
   }
 
-  const { data: currentUserRole } = await supabase
-    .from("Circles")
-    .select("role")
-    .eq("community", id)
-    .eq("member", member.id)
-    .single();
-
-  const { data: registration, error: isRegisteredError } = await supabase.rpc(
-    "am_i_attending",
-    { event_id: eventId }
-  );
-
-  if (isRegisteredError) {
-    return notFound();
-  }
+  const { data: registration = [] } = await supabase.rpc("am_i_attending", {
+    event_id: eventId,
+  });
 
   return (
     <EventDetail
