@@ -2,6 +2,7 @@
 
 import { CommunityManage } from "@/components/CommunityManage/CommunityManage";
 import { PropCommunityManager } from "@/components/CommunityManagers/CommunityManagers";
+import { PropExistingMember } from "@/components/Members/Members";
 import { PropPendingMember } from "@/components/PendingMembers/PendingMembers";
 import { createClient } from "@/lib/supabase/client";
 import { useParams } from "next/navigation";
@@ -67,12 +68,14 @@ export default function CommunityManagePage() {
           (member) => member.role == undefined
         ) as unknown as PropPendingMember[]
       }
-      existingMembers={members?.filter(
-        (member) =>
-          member.role === "member" ||
-          member.role === "event_creator" ||
-          member.role === "door_person"
-      )}
+      existingMembers={
+        members?.filter(
+          (member) =>
+            member.role === "member" ||
+            member.role === "event_creator" ||
+            member.role === "door_person"
+        ) as unknown as PropExistingMember[]
+      }
     />
   );
 }

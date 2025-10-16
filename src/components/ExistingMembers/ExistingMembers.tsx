@@ -17,6 +17,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
 import RoleMenu, { ROLE_OPTIONS } from "../RoleMenu/RoleMenu";
 import { CommunityManager } from "../CommunityManage/CommunityManage";
+import { PropExistingMember } from "../Members/Members";
 
 export interface ExistingMember {
   role: "owner" | "manager" | "event_creator" | "door_person";
@@ -31,18 +32,18 @@ export interface ExistingMember {
   };
 }
 
-type PropExistingMember = {
-  role: "owner" | "manager" | "event_creator" | "door_person";
-  created_at: string;
-  community: number;
-  Members: {
-    id: number;
-    name: string;
-    email: string;
-    avatar_url: string;
-    uid: string;
-  };
-};
+// type PropExistingMember = {
+//   role: "owner" | "manager" | "event_creator" | "door_person";
+//   created_at: string;
+//   community: number;
+//   Members: {
+//     id: number;
+//     name: string;
+//     email: string;
+//     avatar_url: string;
+//     uid: string;
+//   };
+// };
 
 interface ExistingMembersProps {
   existingMembers: PropExistingMember[];

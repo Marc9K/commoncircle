@@ -44,7 +44,12 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html
+      lang="en"
+      title="CommonCircle"
+      aria-description="Meet your community"
+      {...mantineHtmlProps}
+    >
       <head>
         <ColorSchemeScript />
       </head>

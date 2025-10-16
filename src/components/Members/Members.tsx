@@ -17,7 +17,7 @@ export type PropExistingMember = {
     email: string;
     avatar_url: string;
     uid: string;
-  }[];
+  };
 };
 
 interface MembersProps {
