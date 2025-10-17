@@ -9,6 +9,7 @@ CREATE TABLE public.Attendees (
   checkedin boolean NOT NULL DEFAULT false,
   paid boolean DEFAULT false,
   lastCheckedIn timestamp with time zone,
+  payment_session_id text UNIQUE,
   CONSTRAINT Attendees_pkey PRIMARY KEY (id, event, member),
   CONSTRAINT Attendees_event_fkey FOREIGN KEY (event) REFERENCES public.Events(id),
   CONSTRAINT Attendees_member_fkey FOREIGN KEY (member) REFERENCES public.Members(id)
@@ -36,6 +37,8 @@ CREATE TABLE public.Events (
   title text,
   picture text,
   tags ARRAY,
+  stripe_product_id text UNIQUE,
+  stripe_price_id text UNIQUE,
   CONSTRAINT Events_pkey PRIMARY KEY (id),
   CONSTRAINT Events_community_fkey FOREIGN KEY (community) REFERENCES public.communities(id)
 );
@@ -61,5 +64,6 @@ CREATE TABLE public.communities (
   website text,
   picture text,
   established date,
+  stripe_account text UNIQUE,
   CONSTRAINT communities_pkey PRIMARY KEY (id)
 );

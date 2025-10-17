@@ -26,6 +26,9 @@ import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
 
 export interface EventDetailData {
+  communities: any;
+  stripe_price_id: Promise<any>;
+  stripe_product_id: any;
   id: string | number;
   title: string;
   start: string;
@@ -449,7 +452,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     event.public ? "public" : "private"
   );
   const [memberId, setMemberId] = useState<number | null>(null);
-
+  const [memberEmail, setMemberEmail] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchMember = async () => {
@@ -460,7 +463,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     if (user && !userError) {
       const { data: member, error: memberError } = await supabase
         .from("Members")
-        .select("id")
+        .select("id, email")
         .eq("uid", user.id)
         .single();
       if (memberError) {
@@ -468,16 +471,19 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         return null;
       }
       setMemberId(member.id);
+      setMemberEmail(member.email);
     }
   };
+
   useEffect(() => {
     fetchMember();
   }, [supabase]);
 
-  const handleRegister = async () => {
+  const addAttendee = async (sessionId?: string) => {
     const { error } = await supabase.from("Attendees").insert({
       event: event.id,
       member: memberId,
+      payment_session_id: sessionId,
     });
     if (error) {
       console.error(error);
@@ -486,8 +492,107 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         message: "Failed to secure your spot.",
         color: "red",
       });
+      return;
     } else {
       setIsRegistered(true);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (event.price === undefined || event.price === null || event.price > 0) {
+      const stripe = require("stripe")(
+        process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
+      );
+
+      const createProduct = async () => {
+        const product = await stripe.products.create({
+          name: event.title,
+          description:
+            event.description.length && event.description.length > 0
+              ? event.description
+              : event.title + " ticket",
+        });
+        return product.id;
+      };
+
+      const createPrice = async (productId: string) => {
+        let priceData: {
+          currency: string;
+          product: string;
+          custom_unit_amount?: { enabled: boolean };
+          unit_amount?: number;
+        } = {
+          currency: "GBP",
+          product: productId,
+        };
+
+        if (event.price === undefined || event.price === null) {
+          priceData.custom_unit_amount = {
+            enabled: true,
+          };
+        } else if (event.price > 0) {
+          priceData.unit_amount = event.price * 100;
+        }
+
+        const price = await stripe.prices.create(priceData);
+        return price.id;
+      };
+
+      const productId = event.stripe_product_id ?? (await createProduct());
+
+      // Set up on event create
+      if (!event.stripe_product_id) {
+        await supabase
+          .from("Events")
+          .update({ stripe_product_id: productId })
+          .eq("id", event.id);
+      }
+
+      const priceId = event.stripe_price_id ?? (await createPrice(productId));
+
+      console.log("Success! Here is your starter product id: " + productId);
+      console.log("Success! Here is your starter price id: " + priceId);
+
+      const session = await stripe.checkout.sessions.create({
+        client_reference_id: memberId?.toString() ?? "UNKNOWN_MEMBER",
+        customer_email: memberEmail ?? "UNKNOWN_EMAIL",
+        success_url: `https://xqzefihbemmmhikkpfxj.supabase.co/functions/v1/mark-attendee-paid?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `https://commoncircle.vercel.app/communities/${event.communityId}/events/${event.id}`,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        payment_method_types: [
+          "card",
+          "link",
+          "pay_by_bank",
+          "revolut_pay",
+          "bacs_debit",
+        ],
+        metadata: {
+          event_id: event.id,
+          member_id: memberId,
+        },
+        payment_intent_data: {
+          on_behalf_of: event.communities.stripe_account,
+        },
+      });
+
+      addAttendee(session.id);
+      if (session.url) {
+        window.open(session.url, "_blank");
+      } else {
+        notifications.show({
+          title: "Error",
+          message: "Failed to create payment session.",
+          color: "red",
+        });
+      }
+    } else {
+      addAttendee();
     }
   };
 
