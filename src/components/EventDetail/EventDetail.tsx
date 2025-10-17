@@ -556,8 +556,8 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       const session = await stripe.checkout.sessions.create({
         client_reference_id: memberId?.toString() ?? "UNKNOWN_MEMBER",
         customer_email: memberEmail ?? "UNKNOWN_EMAIL",
-        success_url: `https://xqzefihbemmmhikkpfxj.supabase.co/functions/v1/mark-attendee-paid?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `https://commoncircle.vercel.app/communities/${event.communityId}/events/${event.id}`,
+        success_url: `${process.env.NEXT_PUBLIC_STRIPE_PURCHASE_SUCCESS_SUPABASE_URL}/events/${event.id}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${event.communityId}/events/${event.id}`,
         line_items: [
           {
             price: priceId,

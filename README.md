@@ -126,3 +126,7 @@ Component development is done through Storybook on branch design-mock:
 # Start Storybook
 npm run storybook
 ```
+
+## Stripe
+
+[Set up onboarding](https://docs.stripe.com/connect/onboarding/quickstart?lang=node#init-stripe)
