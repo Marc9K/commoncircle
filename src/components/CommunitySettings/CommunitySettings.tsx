@@ -37,6 +37,7 @@ export function CommunitySettings() {
     stripeAccountId: null,
     isPaymentEnabled: false,
   });
+  const [creatingOnboardingLink, setCreatingOnboardingLink] = useState(false);
 
   useEffect(() => {
     const fetchPaymentSettings = async () => {
@@ -75,6 +76,7 @@ export function CommunitySettings() {
   };
 
   const connectStripe = async () => {
+    setCreatingOnboardingLink(true);
     const stripe = require("stripe")(
       process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
     );
@@ -235,7 +237,11 @@ export function CommunitySettings() {
                 Disconnect Stripe Account
               </Button>
             ) : (
-              <Button onClick={connectStripe} disabled={verifyingStripeAccount}>
+              <Button
+                loading={creatingOnboardingLink}
+                onClick={connectStripe}
+                disabled={verifyingStripeAccount}
+              >
                 Onboard to collect payments
               </Button>
             )}

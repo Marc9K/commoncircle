@@ -24,6 +24,7 @@ import { EventSettings } from "../EventSettings/EventSettings";
 import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
+import { CommunityDetailData } from "../CommunityDetail/CommunityDetail";
 
 export interface EventDetailData {
   communities: any;
@@ -45,6 +46,7 @@ export interface EventDetailData {
   communityName?: string;
   communityEmail?: string;
   communityWebsite?: string;
+  community?: CommunityDetailData;
   currentUserRole?:
     | "owner"
     | "manager"
@@ -262,7 +264,7 @@ function RegistrationButton({
   memberId: number | null;
   event: EventDetailData;
   isRegistered: boolean;
-  onRegister: () => void;
+  onRegister: (online?: boolean) => void;
   onUnregister: () => void;
   payWhatYouCanAmount?: number;
   onPayWhatYouCanAmountChange?: (amount: number) => void;
@@ -364,12 +366,19 @@ function RegistrationButton({
   if (event.payWhatYouCan && onPayWhatYouCanAmountChange) {
     return (
       <Stack gap="md">
-        <PayWhatYouCanInput
+        {/* <PayWhatYouCanInput
           event={event}
           amount={payWhatYouCanAmount || 0}
           onAmountChange={onPayWhatYouCanAmountChange}
-        />
-        <Button onClick={onRegister}>Pay £{payWhatYouCanAmount || 1}</Button>
+        /> */}
+        <Button onClick={() => onRegister(false)}>
+          Pay what you can in person
+        </Button>
+        {event.community?.allowPayments && event.community?.stripe_account && (
+          <Button onClick={() => onRegister(true)}>
+            Pay what you can online
+          </Button>
+        )}
         {isManager && manageButton}
       </Stack>
     );
@@ -377,9 +386,15 @@ function RegistrationButton({
 
   return (
     <Stack gap="md">
-      <Button onClick={onRegister}>
-        {event.price === 0 ? "Attend" : `Purchase`}
+      <Button onClick={() => onRegister(false)}>
+        {event.price === 0 ? "Attend" : `Book`}
       </Button>
+      {event.community?.allowPayments &&
+        event.community?.stripe_account &&
+        event.price &&
+        event.price > 0 && (
+          <Button onClick={() => onRegister(true)}>Pay online</Button>
+        )}
       {isManager && manageButton}
     </Stack>
   );
@@ -498,8 +513,12 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     }
   };
 
-  const handleRegister = async () => {
-    if (event.price === undefined || event.price === null || event.price > 0) {
+  const handleRegister = async (online: boolean = false) => {
+    if (
+      event.community?.allowPayments &&
+      event.community?.stripe_account &&
+      (event.price === undefined || event.price === null || event.price > 0)
+    ) {
       const stripe = require("stripe")(
         process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
       );

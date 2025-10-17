@@ -42,6 +42,8 @@ export interface CommunityDetailData {
     | "event_creator"
     | "door_person"
     | null;
+  stripe_account: string | null;
+  allowPayments: boolean;
 }
 function CommunityImage({ community }: { community: CommunityDetailData }) {
   if (!community.picture) return null;

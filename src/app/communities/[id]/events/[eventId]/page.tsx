@@ -91,6 +91,7 @@ export default async function EventDetailPage({
           communityEmail: community.email,
           communityName: community.name,
           communityWebsite: community.website,
+          community: community,
           capacity: event.capacity,
           attendees: attendees_count,
           eventType: event.type ? "public" : "private",
