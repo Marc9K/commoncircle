@@ -337,11 +337,11 @@ function RegistrationButton({
   if (isRegistered) {
     return (
       <Stack gap="sm">
-        {event.finish && new Date(event.finish) > new Date() && (
-          <Button variant="light" color="red" onClick={onUnregister}>
-            Unregister
-          </Button>
-        )}
+        {/* {event.finish && new Date(event.finish) > new Date() && ( */}
+        <Button variant="light" color="red" onClick={onUnregister}>
+          Unregister
+        </Button>
+        {/* )} */}
         <Button
           variant="outline"
           color="blue"
@@ -515,6 +515,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
 
   const handleRegister = async (online: boolean = false) => {
     if (
+      online &&
       event.community?.allowPayments &&
       event.community?.stripe_account &&
       (event.price === undefined || event.price === null || event.price > 0)
@@ -615,16 +616,61 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     }
   };
 
-  const handleUnregister = async () => {
-    const { error } = await supabase
+  const handleUnregister = async (forId?: string) => {
+    const deleteAttendee = async () => {
+      console.log(
+        "deleting attendee",
+        forId == undefined || forId == null || forId == ""
+      );
+      if (forId == undefined || forId == null || forId == "") {
+        console.log("deleting for memberId", memberId);
+        const { error } = await supabase
+          .from("Attendees")
+          .delete()
+          .eq("member", memberId)
+          .eq("event", event.id);
+        if (error) {
+          console.error(error);
+          notifications.show({
+            title: "Error",
+            message: "Failed to unregister.",
+            color: "red",
+          });
+        } else {
+          setIsRegistered(false);
+        }
+      }
+    };
+    console.log("forId", forId);
+    console.log("memberId", memberId);
+    console.log("event.id", event.id);
+    const { data: attendee, error: attendeeError } = await supabase
       .from("Attendees")
-      .delete()
-      .eq("member", memberId)
-      .eq("event", event.id);
-    if (error) {
-      console.error(error);
+      .select("*")
+      // .eq("member", forId ?? memberId)
+      .eq("event", event.id)
+      .single();
+    console.log("attendee", attendee);
+    if (attendeeError) {
+      console.error(attendeeError);
+    }
+    if (attendee && attendee.payment_session_id && attendee.paid) {
+      console.log("refunding payment", attendee.paid);
+      const stripe = require("stripe")(
+        process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
+      );
+      const session = await stripe.checkout.sessions.retrieve(
+        attendee.payment_session_id
+      );
+      const refund = await stripe.refunds.create({
+        charge: session.payment_intent as string,
+      });
+      if (refund.status === "succeeded") {
+        await deleteAttendee();
+      }
     } else {
-      setIsRegistered(false);
+      console.log("deleting attendee", attendee);
+      await deleteAttendee();
     }
   };
 
@@ -659,18 +705,24 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   };
 
   const handleRefund = async (attendeeId: string) => {
-    await supabase
-      .from("Attendees")
-      .update({ paid: false })
-      .eq("member", attendeeId)
-      .eq("event", event.id);
-    // setAttendees((prev) =>
-    //   prev.map((attendee) =>
-    //     attendee.id === attendeeId
-    //       ? { ...attendee, paymentStatus: "refunded" as const }
-    //       : attendee
-    //   )
-    // );
+    const unPay = async () => {
+      const { error } = await supabase
+        .from("Attendees")
+        .update({ paid: false })
+        .eq("member", attendeeId)
+        .eq("event", event.id);
+      if (error) {
+        console.error(error);
+        notifications.show({
+          title: "Error",
+          message: "Failed to record refund.",
+          color: "red",
+        });
+      }
+    };
+    console.log("handling refund", attendeeId);
+    await handleUnregister(attendeeId);
+    await unPay();
   };
 
   const handleAddAttendee = async (newAttendee: {
@@ -750,7 +802,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
                     event={event}
                     isRegistered={isRegistered}
                     onRegister={handleRegister}
-                    onUnregister={handleUnregister}
+                    onUnregister={() => handleUnregister()}
                   />
                 </Stack>
               </Card>
@@ -771,7 +823,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
               event={event}
               isRegistered={isRegistered}
               onRegister={handleRegister}
-              onUnregister={handleUnregister}
+              onUnregister={() => handleUnregister()}
             />
           </Stack>
 
