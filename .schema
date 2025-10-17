@@ -1,0 +1,69 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.Attendees (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  event bigint NOT NULL,
+  member bigint NOT NULL,
+  checkedin boolean NOT NULL DEFAULT false,
+  paid boolean DEFAULT false,
+  lastCheckedIn timestamp with time zone,
+  payment_session_id text UNIQUE,
+  CONSTRAINT Attendees_pkey PRIMARY KEY (id, event, member),
+  CONSTRAINT Attendees_event_fkey FOREIGN KEY (event) REFERENCES public.Events(id),
+  CONSTRAINT Attendees_member_fkey FOREIGN KEY (member) REFERENCES public.Members(id)
+);
+CREATE TABLE public.Circles (
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  community bigint NOT NULL,
+  member bigint NOT NULL,
+  role USER-DEFINED,
+  CONSTRAINT Circles_pkey PRIMARY KEY (community, member),
+  CONSTRAINT Circles_community_fkey FOREIGN KEY (community) REFERENCES public.communities(id),
+  CONSTRAINT Circles_member_fkey FOREIGN KEY (member) REFERENCES public.Members(id)
+);
+CREATE TABLE public.Events (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  community bigint,
+  public boolean NOT NULL,
+  capacity numeric,
+  price numeric,
+  start timestamp with time zone NOT NULL,
+  finish timestamp with time zone,
+  location text,
+  description text,
+  title text,
+  picture text,
+  tags ARRAY,
+  stripe_product_id text UNIQUE,
+  stripe_price_id text UNIQUE,
+  CONSTRAINT Events_pkey PRIMARY KEY (id),
+  CONSTRAINT Events_community_fkey FOREIGN KEY (community) REFERENCES public.communities(id)
+);
+CREATE TABLE public.Members (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name text,
+  email text,
+  avatar_url text,
+  uid uuid UNIQUE,
+  CONSTRAINT Members_pkey PRIMARY KEY (id),
+  CONSTRAINT Members_uid_fkey FOREIGN KEY (uid) REFERENCES auth.users(id)
+);
+CREATE TABLE public.communities (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  name text NOT NULL UNIQUE,
+  public boolean NOT NULL DEFAULT true,
+  location json,
+  description text,
+  languages ARRAY,
+  email text CHECK (email ~* '^[a-zA-Z0-9_+&-]+(?:.[a-zA-Z0-9_+&-]+)*@(?:[a-zA-Z0-9-]+.)+[a-zA-Z]{2,7}$'::text),
+  website text,
+  picture text,
+  established date,
+  stripe_account text UNIQUE,
+  CONSTRAINT communities_pkey PRIMARY KEY (id)
+);

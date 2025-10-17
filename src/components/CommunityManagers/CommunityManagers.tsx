@@ -14,6 +14,7 @@ import {
   Badge,
   Alert,
   Avatar,
+  Anchor,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
@@ -116,9 +117,13 @@ export function CommunityManagers({ managers }: CommunityManagersProps) {
                       <Text size="sm" fw={500}>
                         {manager.Members.name}
                       </Text>
-                      <Text size="xs" c="dimmed">
+                      <Anchor
+                        size="xs"
+                        c="dimmed"
+                        href={`mailto:${manager.Members.email}`}
+                      >
                         {manager.Members.email}
-                      </Text>
+                      </Anchor>
                     </Stack>
                   </Group>
                 </Table.Td>

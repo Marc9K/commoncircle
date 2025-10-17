@@ -36,6 +36,8 @@ export interface EventFormData {
   capacity?: number;
   isFree: boolean;
   isPayWhatYouCan: boolean;
+  stripe_product_id?: string;
+  stripe_price_id?: string;
 }
 
 interface EventFormProps {
@@ -88,6 +90,8 @@ export function EventForm({
       capacity: initialData?.capacity,
       isFree: initialData?.isFree ?? true,
       isPayWhatYouCan: initialData?.isPayWhatYouCan ?? false,
+      stripe_product_id: initialData?.stripe_product_id,
+      stripe_price_id: initialData?.stripe_price_id,
     },
     validate: {
       title: (value) =>

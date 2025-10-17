@@ -1,10 +1,11 @@
 "use client";
 
 import { EventForm, EventFormData } from "@/components/EventForm/EventForm";
-import { Container } from "@mantine/core";
+import { Container, Loader } from "@mantine/core";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Stripe from "stripe";
 
 export default function EditEventPage() {
   const params = useParams<{ id: string; eventId: string }>();
@@ -58,7 +59,7 @@ export default function EditEventPage() {
   if (!eventData) {
     return (
       <Container mt={120}>
-        <div>Loading event data...</div>
+        <Loader />
       </Container>
     );
   }
@@ -72,6 +73,59 @@ export default function EditEventPage() {
         isEditing={true}
         isLoading={isLoading}
         onSubmit={async (data: EventFormData) => {
+          if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+            throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+          }
+          const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+          const createPrice = async (productId: string) => {
+            const priceData: {
+              currency: string;
+              product: string;
+              custom_unit_amount?: { enabled: boolean };
+              unit_amount?: number;
+            } = {
+              currency: "GBP",
+              product: productId,
+            };
+
+            if (data.price === undefined || data.price === null) {
+              priceData.custom_unit_amount = {
+                enabled: true,
+              };
+            } else if (data.price > 0) {
+              priceData.unit_amount = data.price * 100;
+            }
+
+            const price = await stripe.prices.create(priceData);
+            return price.id;
+          };
+          console.log("eventData", eventData);
+          console.log("data", data);
+          if (
+            eventData.title !== data.title ||
+            eventData.description !== data.description
+          ) {
+            const createProduct = async () => {
+              const product = await stripe.products.create({
+                name: data.title,
+                description:
+                  data.description.length && data.description.length > 0
+                    ? data.description
+                    : data.title + " ticket",
+              });
+              return product.id;
+            };
+            const productId = await createProduct();
+            data.stripe_product_id = productId;
+            data.stripe_price_id = await createPrice(productId);
+          } else if (
+            eventData.price !== data.price &&
+            eventData.stripe_product_id
+          ) {
+            data.stripe_price_id = await createPrice(
+              eventData.stripe_product_id
+            );
+          }
           const startDate = new Date(data.start).toISOString();
           const finishDate = data.finish
             ? new Date(data.finish).toISOString()
@@ -88,6 +142,8 @@ export default function EditEventPage() {
               price: data.isFree ? 0 : data.isPayWhatYouCan ? null : data.price,
               start: startDate,
               finish: finishDate,
+              stripe_product_id: data.stripe_product_id,
+              stripe_price_id: data.stripe_price_id,
             })
             .eq("id", eventId);
           if (error) {

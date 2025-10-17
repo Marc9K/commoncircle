@@ -12,6 +12,7 @@ import {
   Modal,
   Select,
   Avatar,
+  Anchor,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
@@ -108,9 +109,9 @@ export function ExistingMembers({ existingMembers }: ExistingMembersProps) {
                         <Text fw={500} size="sm">
                           {member.Members?.name}
                         </Text>
-                        <Text size="xs" c="dimmed" data-testid="member-email">
+                        <Anchor size="xs" c="dimmed" data-testid="member-email">
                           {member.Members?.email}
-                        </Text>
+                        </Anchor>
                       </div>
                     </Group>
                   </Table.Td>

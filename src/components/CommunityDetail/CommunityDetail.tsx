@@ -42,6 +42,8 @@ export interface CommunityDetailData {
     | "event_creator"
     | "door_person"
     | null;
+  stripe_account: string | null;
+  allowPayments: boolean;
 }
 function CommunityImage({ community }: { community: CommunityDetailData }) {
   if (!community.picture) return null;
@@ -217,7 +219,7 @@ export default function CommunityDetail({
       }
     };
     fetchMember();
-  });
+  }, []);
 
   const handleJoinRequest = async () => {
     const { error } = await supabase.rpc("join_community", {

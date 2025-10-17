@@ -115,7 +115,7 @@ function CommunitiesContent() {
       setAllTags(languages || []);
     };
     fetchLanguages();
-  });
+  }, []);
 
   useEffect(() => {
     setCurrentPage(0);

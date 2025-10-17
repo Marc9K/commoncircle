@@ -14,34 +14,48 @@ import {
   Alert,
   Modal,
   Select,
+  Loader,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FcEmptyTrash, FcHighPriority } from "react-icons/fc";
+import Stripe from "stripe";
 
 export function CommunitySettings() {
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
-  const [paymentOpened, { open: openPayment, close: closePayment }] =
-    useDisclosure(false);
+  const [verifyingStripeAccount, setVerifyingStripeAccount] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const supabase = createClient();
   const router = useRouter();
   const { id: communityId } = useParams();
   // Payment settings state
   const [paymentSettings, setPaymentSettings] = useState({
-    stripeAccountId: "",
-    paypalEmail: "",
-    bankAccount: "",
-    paymentMethod: "stripe" as "stripe" | "paypal",
+    stripeAccountId: null as string | null,
     isPaymentEnabled: false,
-    currency: "USD",
-    minimumAmount: 0,
   });
+  const [creatingOnboardingLink, setCreatingOnboardingLink] = useState(false);
+
+  useEffect(() => {
+    const fetchPaymentSettings = async () => {
+      const { data: community } = await supabase
+        .from("communities")
+        .select("stripe_account, allowPayments")
+        .eq("id", communityId)
+        .single();
+      if (community) {
+        setPaymentSettings({
+          stripeAccountId: community.stripe_account,
+          isPaymentEnabled: community.allowPayments,
+        });
+      }
+    };
+    fetchPaymentSettings();
+  }, [communityId]);
 
   const handleDeleteCommunity = async () => {
     setIsDeleting(true);
@@ -62,12 +76,48 @@ export function CommunitySettings() {
     }
   };
 
-  const handleSavePaymentSettings = async () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      closePayment();
-    }, 1000);
+  const connectStripe = async () => {
+    setCreatingOnboardingLink(true);
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+
+    try {
+      console.log("Creating stripe account");
+      const account = await stripe.accounts.create({
+        country: "GB",
+        type: "standard",
+        default_currency: "GBP",
+      });
+      console.log("Stripe account created", JSON.stringify(account, null, 2));
+      const accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        return_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${communityId}/`,
+        refresh_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${communityId}/`,
+        type: "account_onboarding",
+      });
+      console.log("Account link created", JSON.stringify(accountLink, null, 2));
+      const { error } = await supabase
+        .from("communities")
+        .update({ stripe_account: account.id })
+        .eq("id", communityId);
+      if (error) {
+        console.error(error);
+      } else {
+        setPaymentSettings({
+          ...paymentSettings,
+          stripeAccountId: account.id,
+        });
+      }
+
+      router.push(accountLink.url);
+    } catch (error) {
+      console.error(
+        "An error occurred when calling the Stripe API to create an account",
+        error
+      );
+    }
   };
 
   //   if (!canManageSettings) {
@@ -78,6 +128,106 @@ export function CommunitySettings() {
   //     );
   //   }
 
+  const verifyStripeAccount = async () => {
+    setVerifyingStripeAccount(true);
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+
+    const { data: community } = await supabase
+      .from("communities")
+      .select("stripe_account")
+      .eq("id", communityId)
+      .single();
+    console.log(
+      "Verifying stripe account",
+      paymentSettings.stripeAccountId ?? community?.stripe_account
+    );
+    const account = await stripe.accounts.retrieve(
+      paymentSettings.stripeAccountId ?? community?.stripe_account
+    );
+    console.log("Stripe account retrieved", JSON.stringify(account, null, 2));
+    if (account.charges_enabled) {
+      const { error } = await supabase
+        .from("communities")
+        .update({ allowPayments: true })
+        .eq("id", communityId);
+      if (error) {
+        console.error(error);
+      } else {
+        setPaymentSettings({
+          ...paymentSettings,
+          isPaymentEnabled: true,
+        });
+      }
+    } else {
+      console.error("Stripe account is not verified");
+    }
+    setVerifyingStripeAccount(false);
+  };
+
+  const disconnectStripeAccount = async () => {
+    console.log("Disconnecting stripe account");
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+
+    const { data: community } = await supabase
+      .from("communities")
+      .select("stripe_account")
+      .eq("id", communityId)
+      .single();
+
+    const deleted = await stripe.accounts.del(
+      paymentSettings.stripeAccountId ?? community?.stripe_account
+    );
+    console.log("Stripe account deleted", JSON.stringify(deleted, null, 2));
+    if (!deleted.deleted) {
+      notifications.show({
+        title: "Error disconnecting stripe account",
+        message: "Failed to disconnect stripe account. Please try again.",
+        color: "red",
+      });
+      return;
+    }
+    const { error } = await supabase
+      .from("communities")
+      .update({ stripe_account: null, allowPayments: false })
+      .eq("id", communityId);
+    if (error) {
+      console.error(error);
+    } else {
+      notifications.show({
+        title: "Stripe account disconnected",
+        message: "Stripe account has been disconnected.",
+        color: "green",
+      });
+    }
+    setPaymentSettings({
+      ...paymentSettings,
+      stripeAccountId: null,
+      isPaymentEnabled: false,
+    });
+  };
+
+  const stopPayments = async () => {
+    console.log("Disconnecting stripe account");
+    const { error } = await supabase
+      .from("communities")
+      .update({ allowPayments: false })
+      .eq("id", communityId);
+    if (error) {
+      console.error(error);
+    } else {
+      setPaymentSettings({
+        ...paymentSettings,
+        isPaymentEnabled: false,
+      });
+    }
+  };
+
   return (
     <Stack gap="lg">
       <Card withBorder padding="lg">
@@ -86,20 +236,45 @@ export function CommunitySettings() {
             <div>
               <Title order={4}>Payments</Title>
             </div>
-            <Button onClick={openPayment}>Configure</Button>
+            {paymentSettings.isPaymentEnabled ? (
+              <Button color="red" onClick={disconnectStripeAccount}>
+                Disconnect Stripe Account
+              </Button>
+            ) : (
+              <Button
+                loading={creatingOnboardingLink}
+                onClick={connectStripe}
+                disabled={verifyingStripeAccount}
+              >
+                Onboard to collect payments
+              </Button>
+            )}
           </Group>
 
           <Group>
             <Switch
-              label="Enable"
-              description="Allow members to pay for events"
-              checked={paymentSettings.isPaymentEnabled}
-              onChange={(event) =>
-                setPaymentSettings({
-                  ...paymentSettings,
-                  isPaymentEnabled: event.currentTarget.checked,
-                })
+              label={paymentSettings.isPaymentEnabled ? "Enabled" : "Disabled"}
+              thumbIcon={
+                verifyingStripeAccount ? <Loader size={12} /> : undefined
               }
+              disabled={
+                !paymentSettings.stripeAccountId || verifyingStripeAccount
+              }
+              description="Allow members to pay for events online"
+              checked={paymentSettings.isPaymentEnabled}
+              onChange={async (event) => {
+                event.preventDefault();
+                event.target;
+                if (event.currentTarget.checked) {
+                  await verifyStripeAccount();
+                } else {
+                  await stopPayments();
+                  setPaymentSettings({
+                    ...paymentSettings,
+                    isPaymentEnabled: event.currentTarget.checked,
+                  });
+                }
+              }}
             />
           </Group>
         </Stack>
@@ -183,69 +358,6 @@ export function CommunitySettings() {
               data-testid="save-settings-button"
             >
               Delete Community
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
-
-      {/* Payment Settings Modal */}
-      <Modal
-        opened={paymentOpened}
-        onClose={closePayment}
-        title="Payment Settings"
-        size="lg"
-      >
-        <Stack gap="md">
-          <Select
-            label="Payment Method"
-            placeholder="Select payment method"
-            data={[
-              { value: "stripe", label: "Stripe" },
-              { value: "paypal", label: "PayPal" },
-            ]}
-            value={paymentSettings.paymentMethod}
-            onChange={(value) =>
-              setPaymentSettings({
-                ...paymentSettings,
-                paymentMethod: value as "stripe" | "paypal",
-              })
-            }
-          />
-
-          {paymentSettings.paymentMethod === "stripe" && (
-            <TextInput
-              label="Stripe Account ID"
-              placeholder="acct_..."
-              value={paymentSettings.stripeAccountId}
-              onChange={(event) =>
-                setPaymentSettings({
-                  ...paymentSettings,
-                  stripeAccountId: event.currentTarget.value,
-                })
-              }
-            />
-          )}
-
-          {paymentSettings.paymentMethod === "paypal" && (
-            <TextInput
-              label="PayPal Email"
-              placeholder="your-email@example.com"
-              value={paymentSettings.paypalEmail}
-              onChange={(event) =>
-                setPaymentSettings({
-                  ...paymentSettings,
-                  paypalEmail: event.currentTarget.value,
-                })
-              }
-            />
-          )}
-
-          <Group justify="flex-end" gap="sm">
-            <Button variant="subtle" onClick={closePayment}>
-              Cancel
-            </Button>
-            <Button onClick={handleSavePaymentSettings} loading={isSaving}>
-              Save Settings
             </Button>
           </Group>
         </Stack>

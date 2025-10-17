@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
+import Stripe from "stripe";
 
 export default function NewEventPage() {
   const params = useParams<{ id: string }>();
@@ -59,6 +60,56 @@ export default function NewEventPage() {
 
   const handleSubmit = async (data: EventFormData) => {
     setIsLoading(true);
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+
+    const createProduct = async () => {
+      const product = await stripe.products.create({
+        name: data.title,
+        description:
+          data.description.length && data.description.length > 0
+            ? data.description
+            : data.title + " ticket",
+      });
+      return product.id;
+    };
+
+    const createPrice = async (productId: string) => {
+      const priceData: {
+        currency: string;
+        product: string;
+        custom_unit_amount?: { enabled: boolean };
+        unit_amount?: number;
+      } = {
+        currency: "GBP",
+        product: productId,
+      };
+
+      if (data.price === undefined || data.price === null) {
+        priceData.custom_unit_amount = {
+          enabled: true,
+        };
+      } else if (data.price > 0) {
+        priceData.unit_amount = data.price * 100;
+      }
+
+      const price = await stripe.prices.create(priceData);
+      return price.id;
+    };
+
+    const productId = data.stripe_product_id ?? (await createProduct());
+
+    // Set up on event create
+    // if (!data.stripe_product_id) {
+    //   await supabase
+    //     .from("Events")
+    //     .update({ stripe_product_id: productId })
+    //     .eq("id", data.id);
+    // }
+
+    const priceId = data.stripe_price_id ?? (await createPrice(productId));
 
     try {
       const startDate = new Date(data.start).toISOString();
@@ -84,6 +135,8 @@ export default function NewEventPage() {
           capacity: data.capacity,
           public: true,
           picture: imageUrl,
+          stripe_product_id: productId,
+          stripe_price_id: priceId,
         })
         .select()
         .single();

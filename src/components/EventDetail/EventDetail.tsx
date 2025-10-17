@@ -24,8 +24,13 @@ import { EventSettings } from "../EventSettings/EventSettings";
 import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
+import { CommunityDetailData } from "../CommunityDetail/CommunityDetail";
+import Stripe from "stripe";
 
 export interface EventDetailData {
+  communities: { stripe_account: string };
+  stripe_price_id: string;
+  stripe_product_id: string;
   id: string | number;
   title: string;
   start: string;
@@ -42,6 +47,7 @@ export interface EventDetailData {
   communityName?: string;
   communityEmail?: string;
   communityWebsite?: string;
+  community?: CommunityDetailData;
   currentUserRole?:
     | "owner"
     | "manager"
@@ -153,34 +159,6 @@ function EventLocation({ event }: { event: EventDetailData }) {
   );
 }
 
-function PayWhatYouCanInput({
-  amount,
-  onAmountChange,
-}: {
-  event: EventDetailData;
-  amount: number;
-  onAmountChange: (value: number) => void;
-}) {
-  return (
-    <Stack gap="sm">
-      <Text size="md" fw={500}>
-        Pay What You Can
-      </Text>
-      <NumberInput
-        value={amount}
-        onChange={(value) =>
-          onAmountChange(typeof value === "number" ? value : 0)
-        }
-        min={0}
-        step={1}
-        prefix="£"
-        placeholder={`set your own amount`}
-        size="md"
-      />
-    </Stack>
-  );
-}
-
 function EventPrice({ event }: { event: EventDetailData }) {
   if (event.payWhatYouCan) {
     return (
@@ -253,15 +231,13 @@ function RegistrationButton({
   isRegistered,
   onRegister,
   onUnregister,
-  payWhatYouCanAmount,
   onPayWhatYouCanAmountChange,
 }: {
   memberId: number | null;
   event: EventDetailData;
   isRegistered: boolean;
-  onRegister: () => void;
+  onRegister: (online?: boolean) => void;
   onUnregister: () => void;
-  payWhatYouCanAmount?: number;
   onPayWhatYouCanAmountChange?: (amount: number) => void;
 }) {
   if (!memberId || (!event.currentUserRole && !event.public)) {
@@ -332,11 +308,11 @@ function RegistrationButton({
   if (isRegistered) {
     return (
       <Stack gap="sm">
-        {event.finish && new Date(event.finish) > new Date() && (
-          <Button variant="light" color="red" onClick={onUnregister}>
-            Unregister
-          </Button>
-        )}
+        {/* {event.finish && new Date(event.finish) > new Date() && ( */}
+        <Button variant="light" color="red" onClick={onUnregister}>
+          Unregister
+        </Button>
+        {/* )} */}
         <Button
           variant="outline"
           color="blue"
@@ -361,12 +337,19 @@ function RegistrationButton({
   if (event.payWhatYouCan && onPayWhatYouCanAmountChange) {
     return (
       <Stack gap="md">
-        <PayWhatYouCanInput
+        {/* <PayWhatYouCanInput
           event={event}
           amount={payWhatYouCanAmount || 0}
           onAmountChange={onPayWhatYouCanAmountChange}
-        />
-        <Button onClick={onRegister}>Pay £{payWhatYouCanAmount || 1}</Button>
+        /> */}
+        <Button onClick={() => onRegister(false)}>
+          Pay what you can in person
+        </Button>
+        {event.community?.allowPayments && event.community?.stripe_account && (
+          <Button onClick={() => onRegister(true)}>
+            Pay what you can online
+          </Button>
+        )}
         {isManager && manageButton}
       </Stack>
     );
@@ -374,9 +357,14 @@ function RegistrationButton({
 
   return (
     <Stack gap="md">
-      <Button onClick={onRegister}>
-        {event.price === 0 ? "Attend" : `Purchase`}
+      <Button onClick={() => onRegister(false)}>
+        {event.price === 0 ? "Attend" : `Book`}
       </Button>
+      {event.community?.allowPayments &&
+        event.community?.stripe_account &&
+        ((event.price && event.price > 0) || event.price === null) && (
+          <Button onClick={() => onRegister(true)}>Pay online</Button>
+        )}
       {isManager && manageButton}
     </Stack>
   );
@@ -431,6 +419,7 @@ function EventOrganizer({ event }: { event: EventDetailData }) {
 }
 
 function EventDescription({ event }: { event: EventDetailData }) {
+  if (!event.description || event.description.length === 0) return null;
   return (
     <Stack gap="sm">
       <Text fw={600} size="lg">
@@ -449,7 +438,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     event.public ? "public" : "private"
   );
   const [memberId, setMemberId] = useState<number | null>(null);
-
+  const [memberEmail, setMemberEmail] = useState<string | null>(null);
   const supabase = createClient();
 
   const fetchMember = async () => {
@@ -460,7 +449,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     if (user && !userError) {
       const { data: member, error: memberError } = await supabase
         .from("Members")
-        .select("id")
+        .select("id, email")
         .eq("uid", user.id)
         .single();
       if (memberError) {
@@ -468,16 +457,19 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         return null;
       }
       setMemberId(member.id);
+      setMemberEmail(member.email);
     }
   };
+
   useEffect(() => {
     fetchMember();
   }, [supabase]);
 
-  const handleRegister = async () => {
+  const addAttendee = async (sessionId?: string) => {
     const { error } = await supabase.from("Attendees").insert({
       event: event.id,
       member: memberId,
+      payment_session_id: sessionId,
     });
     if (error) {
       console.error(error);
@@ -486,21 +478,184 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         message: "Failed to secure your spot.",
         color: "red",
       });
+      return;
     } else {
       setIsRegistered(true);
     }
   };
 
-  const handleUnregister = async () => {
-    const { error } = await supabase
-      .from("Attendees")
-      .delete()
-      .eq("member", memberId)
-      .eq("event", event.id);
-    if (error) {
-      console.error(error);
+  const handleRegister = async (online: boolean = false) => {
+    if (
+      online &&
+      event.community?.allowPayments &&
+      event.community?.stripe_account &&
+      (event.price === undefined || event.price === null || event.price > 0)
+    ) {
+      if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+        throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+      }
+      const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+
+      const createProduct = async () => {
+        const product = await stripe.products.create({
+          name: event.title,
+          description:
+            event.description.length && event.description.length > 0
+              ? event.description
+              : event.title + " ticket",
+        });
+        return product.id;
+      };
+
+      const createPrice = async (productId: string) => {
+        const priceData: {
+          currency: string;
+          product: string;
+          custom_unit_amount?: { enabled: boolean };
+          unit_amount?: number;
+        } = {
+          currency: "GBP",
+          product: productId,
+        };
+
+        if (event.price === undefined || event.price === null) {
+          priceData.custom_unit_amount = {
+            enabled: true,
+          };
+        } else if (event.price > 0) {
+          priceData.unit_amount = event.price * 100;
+        }
+
+        const price = await stripe.prices.create(priceData);
+        return price.id;
+      };
+
+      console.log("event.stripe_product_id", event.stripe_product_id);
+      const productId = event.stripe_product_id ?? (await createProduct());
+      // Set up on event create
+      if (!event.stripe_product_id) {
+        await supabase
+          .from("Events")
+          .update({ stripe_product_id: productId })
+          .eq("id", event.id);
+      }
+
+      const priceId = event.stripe_price_id ?? (await createPrice(productId));
+
+      console.log("Success! Here is your starter product id: " + productId);
+      console.log("Success! Here is your starter price id: " + priceId);
+
+      const session = await stripe.checkout.sessions.create({
+        client_reference_id: memberId?.toString() ?? "UNKNOWN_MEMBER",
+        customer_email: memberEmail ?? "UNKNOWN_EMAIL",
+        success_url: `${process.env.NEXT_PUBLIC_STRIPE_PURCHASE_SUCCESS_SUPABASE_URL}/events/${event.id}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${event.communityId}/events/${event.id}`,
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        payment_method_types: [
+          "card",
+          "link",
+          "pay_by_bank",
+          "revolut_pay",
+          "bacs_debit",
+        ],
+        metadata: {
+          event_id: event.id,
+          member_id: memberId,
+        },
+        payment_intent_data: {
+          on_behalf_of: event.communities.stripe_account,
+        },
+      });
+
+      console.log("session", session);
+
+      await addAttendee(session.id);
+      if (session.url) {
+        console.log("opening session url", session.url);
+        window.open(session.url, "_blank");
+      } else {
+        notifications.show({
+          title: "Error",
+          message: "Failed to create payment session.",
+          color: "red",
+        });
+      }
     } else {
-      setIsRegistered(false);
+      addAttendee();
+    }
+  };
+
+  const handleUnregister = async (forId?: string) => {
+    const deleteAttendee = async () => {
+      console.log(
+        "deleting attendee",
+        forId == undefined || forId == null || forId == ""
+      );
+      if (forId == undefined || forId == null || forId == "") {
+        console.log("deleting for memberId", memberId);
+        const { error } = await supabase
+          .from("Attendees")
+          .delete()
+          .eq("member", memberId)
+          .eq("event", event.id);
+        if (error) {
+          console.error(error);
+          notifications.show({
+            title: "Error",
+            message: "Failed to unregister.",
+            color: "red",
+          });
+        } else {
+          setIsRegistered(false);
+        }
+      }
+    };
+    console.log("forId", forId);
+    console.log("memberId", memberId);
+    console.log("event.id", event.id);
+    const { data: attendee, error: attendeeError } = await supabase
+      .from("Attendees")
+      .select("*")
+      // .eq("member", forId ?? memberId)
+      .eq("event", event.id)
+      .single();
+    console.log("attendee", attendee);
+    if (attendeeError) {
+      console.error(attendeeError);
+    }
+    if (attendee && attendee.payment_session_id && attendee.paid) {
+      console.log("refunding payment", attendee.paid);
+      try {
+        if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+          throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+        }
+        const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+        const session = await stripe.checkout.sessions.retrieve(
+          attendee.payment_session_id
+        );
+        const refund = await stripe.refunds.create({
+          charge: session.payment_intent as string,
+        });
+        if (refund.status === "succeeded") {
+          await deleteAttendee();
+        }
+      } catch (error) {
+        console.error(error);
+        notifications.show({
+          title: "Error",
+          message: "Failed to refund payment. Please use your Stripe Dashboard",
+          color: "red",
+        });
+      }
+    } else {
+      console.log("deleting attendee", attendee);
+      await deleteAttendee();
     }
   };
 
@@ -535,18 +690,24 @@ export function EventDetail({ event }: { event: EventDetailData }) {
   };
 
   const handleRefund = async (attendeeId: string) => {
-    await supabase
-      .from("Attendees")
-      .update({ paid: false })
-      .eq("member", attendeeId)
-      .eq("event", event.id);
-    // setAttendees((prev) =>
-    //   prev.map((attendee) =>
-    //     attendee.id === attendeeId
-    //       ? { ...attendee, paymentStatus: "refunded" as const }
-    //       : attendee
-    //   )
-    // );
+    const unPay = async () => {
+      const { error } = await supabase
+        .from("Attendees")
+        .update({ paid: false })
+        .eq("member", attendeeId)
+        .eq("event", event.id);
+      if (error) {
+        console.error(error);
+        notifications.show({
+          title: "Error",
+          message: "Failed to record refund.",
+          color: "red",
+        });
+      }
+    };
+    console.log("handling refund", attendeeId);
+    await handleUnregister(attendeeId);
+    await unPay();
   };
 
   const handleAddAttendee = async (newAttendee: {
@@ -626,7 +787,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
                     event={event}
                     isRegistered={isRegistered}
                     onRegister={handleRegister}
-                    onUnregister={handleUnregister}
+                    onUnregister={() => handleUnregister()}
                   />
                 </Stack>
               </Card>
@@ -647,7 +808,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
               event={event}
               isRegistered={isRegistered}
               onRegister={handleRegister}
-              onUnregister={handleUnregister}
+              onUnregister={() => handleUnregister()}
             />
           </Stack>
 

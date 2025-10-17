@@ -51,7 +51,7 @@ export default async function EventDetailPage({
 
   const { data: event } = await supabase
     .from("Events")
-    .select("*")
+    .select("*, communities(stripe_account)")
     .eq("id", eventId)
     .eq("community", id)
     .single();
@@ -91,6 +91,7 @@ export default async function EventDetailPage({
           communityEmail: community.email,
           communityName: community.name,
           communityWebsite: community.website,
+          community: community,
           capacity: event.capacity,
           attendees: attendees_count,
           eventType: event.type ? "public" : "private",

@@ -19,6 +19,7 @@ import {
   Container,
   Input,
   Paper,
+  Anchor,
 } from "@mantine/core";
 import { useState, useMemo } from "react";
 import { FcCancel, FcDownLeft, FcExpand, FcSearch } from "react-icons/fc";
@@ -96,9 +97,13 @@ function AttendeeCard({
             <Text fw={500} size="sm">
               {attendee.Members.name}
             </Text>
-            <Text size="xs" c="dimmed">
+            <Anchor
+              size="xs"
+              c="dimmed"
+              href={`mailto:${attendee.Members.email}`}
+            >
               {attendee.Members.email}
-            </Text>
+            </Anchor>
             <Group gap="xs">
               {/* <Badge
                 size="xs"

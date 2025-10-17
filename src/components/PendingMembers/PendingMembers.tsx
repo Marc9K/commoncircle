@@ -9,6 +9,7 @@ import {
   Table,
   ActionIcon,
   Avatar,
+  Anchor,
 } from "@mantine/core";
 import { useState } from "react";
 import { FcCancel, FcOk } from "react-icons/fc";
@@ -119,9 +120,9 @@ export function PendingMembers({ pendingMembers }: PendingMembersProps) {
                         <Text fw={500} size="sm">
                           {member.Members.name}
                         </Text>
-                        <Text size="xs" c="dimmed" data-testid="member-email">
+                        <Anchor size="xs" c="dimmed" data-testid="member-email">
                           {member.Members.email}
-                        </Text>
+                        </Anchor>
                       </Stack>
                     </Group>
                   </Table.Td>
