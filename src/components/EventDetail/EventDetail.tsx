@@ -25,11 +25,12 @@ import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
 import { CommunityDetailData } from "../CommunityDetail/CommunityDetail";
+import Stripe from "stripe";
 
 export interface EventDetailData {
-  communities: any;
-  stripe_price_id: Promise<any>;
-  stripe_product_id: any;
+  communities: { stripe_account: string };
+  stripe_price_id: string;
+  stripe_product_id: string;
   id: string | number;
   title: string;
   start: string;
@@ -158,34 +159,6 @@ function EventLocation({ event }: { event: EventDetailData }) {
   );
 }
 
-function PayWhatYouCanInput({
-  amount,
-  onAmountChange,
-}: {
-  event: EventDetailData;
-  amount: number;
-  onAmountChange: (value: number) => void;
-}) {
-  return (
-    <Stack gap="sm">
-      <Text size="md" fw={500}>
-        Pay What You Can
-      </Text>
-      <NumberInput
-        value={amount}
-        onChange={(value) =>
-          onAmountChange(typeof value === "number" ? value : 0)
-        }
-        min={0}
-        step={1}
-        prefix="£"
-        placeholder={`set your own amount`}
-        size="md"
-      />
-    </Stack>
-  );
-}
-
 function EventPrice({ event }: { event: EventDetailData }) {
   if (event.payWhatYouCan) {
     return (
@@ -258,7 +231,6 @@ function RegistrationButton({
   isRegistered,
   onRegister,
   onUnregister,
-  payWhatYouCanAmount,
   onPayWhatYouCanAmountChange,
 }: {
   memberId: number | null;
@@ -266,7 +238,6 @@ function RegistrationButton({
   isRegistered: boolean;
   onRegister: (online?: boolean) => void;
   onUnregister: () => void;
-  payWhatYouCanAmount?: number;
   onPayWhatYouCanAmountChange?: (amount: number) => void;
 }) {
   if (!memberId || (!event.currentUserRole && !event.public)) {
@@ -391,8 +362,7 @@ function RegistrationButton({
       </Button>
       {event.community?.allowPayments &&
         event.community?.stripe_account &&
-        event.price &&
-        event.price > 0 && (
+        ((event.price && event.price > 0) || event.price === null) && (
           <Button onClick={() => onRegister(true)}>Pay online</Button>
         )}
       {isManager && manageButton}
@@ -520,9 +490,10 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       event.community?.stripe_account &&
       (event.price === undefined || event.price === null || event.price > 0)
     ) {
-      const stripe = require("stripe")(
-        process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
-      );
+      if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+        throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+      }
+      const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
       const createProduct = async () => {
         const product = await stripe.products.create({
@@ -536,7 +507,7 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       };
 
       const createPrice = async (productId: string) => {
-        let priceData: {
+        const priceData: {
           currency: string;
           product: string;
           custom_unit_amount?: { enabled: boolean };
@@ -558,8 +529,8 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         return price.id;
       };
 
+      console.log("event.stripe_product_id", event.stripe_product_id);
       const productId = event.stripe_product_id ?? (await createProduct());
-
       // Set up on event create
       if (!event.stripe_product_id) {
         await supabase
@@ -601,8 +572,11 @@ export function EventDetail({ event }: { event: EventDetailData }) {
         },
       });
 
-      addAttendee(session.id);
+      console.log("session", session);
+
+      await addAttendee(session.id);
       if (session.url) {
+        console.log("opening session url", session.url);
         window.open(session.url, "_blank");
       } else {
         notifications.show({
@@ -656,17 +630,27 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     }
     if (attendee && attendee.payment_session_id && attendee.paid) {
       console.log("refunding payment", attendee.paid);
-      const stripe = require("stripe")(
-        process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
-      );
-      const session = await stripe.checkout.sessions.retrieve(
-        attendee.payment_session_id
-      );
-      const refund = await stripe.refunds.create({
-        charge: session.payment_intent as string,
-      });
-      if (refund.status === "succeeded") {
-        await deleteAttendee();
+      try {
+        if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+          throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+        }
+        const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
+        const session = await stripe.checkout.sessions.retrieve(
+          attendee.payment_session_id
+        );
+        const refund = await stripe.refunds.create({
+          charge: session.payment_intent as string,
+        });
+        if (refund.status === "succeeded") {
+          await deleteAttendee();
+        }
+      } catch (error) {
+        console.error(error);
+        notifications.show({
+          title: "Error",
+          message: "Failed to refund payment. Please use your Stripe Dashboard",
+          color: "red",
+        });
       }
     } else {
       console.log("deleting attendee", attendee);

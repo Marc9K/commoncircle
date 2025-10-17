@@ -22,6 +22,7 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FcEmptyTrash, FcHighPriority } from "react-icons/fc";
+import Stripe from "stripe";
 
 export function CommunitySettings() {
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
@@ -34,7 +35,7 @@ export function CommunitySettings() {
   const { id: communityId } = useParams();
   // Payment settings state
   const [paymentSettings, setPaymentSettings] = useState({
-    stripeAccountId: null,
+    stripeAccountId: null as string | null,
     isPaymentEnabled: false,
   });
   const [creatingOnboardingLink, setCreatingOnboardingLink] = useState(false);
@@ -77,9 +78,10 @@ export function CommunitySettings() {
 
   const connectStripe = async () => {
     setCreatingOnboardingLink(true);
-    const stripe = require("stripe")(
-      process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
-    );
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
     try {
       console.log("Creating stripe account");
@@ -128,9 +130,10 @@ export function CommunitySettings() {
 
   const verifyStripeAccount = async () => {
     setVerifyingStripeAccount(true);
-    const stripe = require("stripe")(
-      process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
-    );
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
     const { data: community } = await supabase
       .from("communities")
@@ -166,9 +169,10 @@ export function CommunitySettings() {
 
   const disconnectStripeAccount = async () => {
     console.log("Disconnecting stripe account");
-    const stripe = require("stripe")(
-      process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY
-    );
+    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
+      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
+    }
+    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
     const { data: community } = await supabase
       .from("communities")
