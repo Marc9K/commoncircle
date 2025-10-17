@@ -419,6 +419,7 @@ function EventOrganizer({ event }: { event: EventDetailData }) {
 }
 
 function EventDescription({ event }: { event: EventDetailData }) {
+  if (!event.description || event.description.length === 0) return null;
   return (
     <Stack gap="sm">
       <Text fw={600} size="lg">

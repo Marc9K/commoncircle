@@ -219,7 +219,7 @@ export default function CommunityDetail({
       }
     };
     fetchMember();
-  });
+  }, []);
 
   const handleJoinRequest = async () => {
     const { error } = await supabase.rpc("join_community", {

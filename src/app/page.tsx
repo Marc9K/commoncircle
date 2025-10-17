@@ -46,7 +46,7 @@ export default function Home() {
     const { data: communityGrowth } = await supabase.rpc(
       "top_community_monthly_growth"
     );
-    console.log(communityGrowth);
+    // console.log(communityGrowth);
     setCommunityGrowth(communityGrowth?.[0]?.growth_ratio);
   };
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function Home() {
     fetchEvents();
     fetchCommunityGrowth();
     fetchCommunities();
-  });
+  }, []);
   return (
     <Container mt="sm">
       <Stack gap="lg">
