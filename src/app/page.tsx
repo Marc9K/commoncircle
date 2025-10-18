@@ -18,14 +18,23 @@ import {
 } from "@/components/CommunitiesGrid/CommunitiesGrid";
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
 
 export default function Home() {
-  const user = undefined;
   const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
+
   const [members, setMembers] = useState(0);
   const [events, setEvents] = useState(0);
   const [communityGrowth, setCommunityGrowth] = useState(0);
   const [communities, setCommunities] = useState<Community[]>([]);
+
+  const fetchUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    setUser(user);
+  };
   const fetchCommunities = async () => {
     const { data } = await supabase
       .from("communities_with_counts")
@@ -50,11 +59,13 @@ export default function Home() {
     setCommunityGrowth(communityGrowth?.[0]?.growth_ratio);
   };
   useEffect(() => {
+    fetchUser();
     fetchMembers();
     fetchEvents();
     fetchCommunityGrowth();
     fetchCommunities();
   }, []);
+
   return (
     <Container mt="sm">
       <Stack gap="lg">

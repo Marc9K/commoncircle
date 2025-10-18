@@ -18,26 +18,29 @@ interface EventCardProps {
   event: EventCardData;
 }
 
-function formatEventDateTime(startDateTime: string, endDateTime: string) {
+function formatEventDateTime(startDateTime: string, endDateTime?: string) {
   const start = new Date(startDateTime);
-  const end = new Date(endDateTime);
+  const end = endDateTime ? new Date(endDateTime) : null;
 
   const startDate = start.toLocaleDateString();
-  const endDate = end.toLocaleDateString();
+  const endDate = end ? end.toLocaleDateString() : null;
   const startTime = start.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
   });
-  const endTime = end.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  if (end) {
+    const endTime = end.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    if (startDate === endDate) {
+      return `${startDate} • ${startTime} - ${endTime}`;
+    }
 
-  if (startDate === endDate) {
-    return `${startDate} • ${startTime} - ${endTime}`;
+    return `${start.toLocaleDateString()}, ${startTime} - ${end.toLocaleDateString()}, ${endTime}`;
   }
 
-  return `${start.toLocaleDateString()}, ${startTime} - ${end.toLocaleDateString()}, ${endTime}`;
+  return `${start.toLocaleDateString()}, ${startTime}`;
 }
 
 export function EventCard({ event }: EventCardProps) {

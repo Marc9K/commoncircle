@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { CommunityDetailData } from "@/components/CommunityDetail/CommunityDetail";
 import { createClient } from "@/lib/supabase/client";
 import { Map } from "../Map/Map";
+import { notifications } from "@mantine/notifications";
 
 interface CommunityEditFormProps {
   community?: CommunityDetailData;
@@ -136,46 +137,46 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
 
   const handleSubmit = async (values: typeof form.values) => {
     setIsSubmitting(true);
-    const supabase = createClient();
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      console.error("Authentication error:", authError);
-      setIsSubmitting(false);
-      router.push("/auth/login");
-      return;
-    }
-
-    // Upload image first if a file is selected
-    let imageUrl: string | null = null;
-    if (selectedFile) {
-      imageUrl = await uploadImageToSupabase();
-      if (!imageUrl) {
-        console.error("Failed to upload image");
-        setIsSubmitting(false);
-        return;
-      }
-    }
-
-    const filteredValues = Object.fromEntries(
-      Object.entries(values).filter(([, value]) => {
-        if (Array.isArray(value)) {
-          return value.length > 0;
-        }
-        return value !== "" && value !== null && value !== undefined;
-      })
-    );
-
-    // Add image URL as 'picture' attribute
-    if (imageUrl) {
-      filteredValues.picture = imageUrl;
-    }
 
     try {
+      const supabase = createClient();
+
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        console.error("Authentication error:", authError);
+        setIsSubmitting(false);
+        router.push("/auth/login");
+        return;
+      }
+
+      // Upload image first if a file is selected
+      let imageUrl: string | null = null;
+      if (selectedFile) {
+        imageUrl = await uploadImageToSupabase();
+        if (!imageUrl) {
+          console.error("Failed to upload image");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const filteredValues = Object.fromEntries(
+        Object.entries(values).filter(([, value]) => {
+          if (Array.isArray(value)) {
+            return value.length > 0;
+          }
+          return value !== "" && value !== null && value !== undefined;
+        })
+      );
+
+      // Add image URL as 'picture' attribute
+      if (imageUrl) {
+        filteredValues.picture = imageUrl;
+      }
       if (community?.id) {
         const { error } = await supabase
           .from("communities")
@@ -206,6 +207,11 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
       }
     } catch (error) {
       console.error("Unexpected error:", error);
+      notifications.show({
+        title: "Error",
+        message: "Failed to create community. Please try again. " + error,
+        color: "red",
+      });
       setIsSubmitting(false);
     }
   };
@@ -319,6 +325,7 @@ export function CommunityEditForm({ community }: CommunityEditFormProps) {
                     label="Contact Email"
                     placeholder="hello@community.org"
                     required
+                    type="email"
                     {...form.getInputProps("email")}
                     data-testid="community-email-input"
                   />

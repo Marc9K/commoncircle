@@ -7,16 +7,21 @@ import MainTabs from "./MainTabs";
 import React, { forwardRef } from "react";
 import Variable from "../Variable/Variable";
 import { useCurrentMember } from "@/hooks/use-current-member";
+import { useRouter } from "next/navigation";
 
 export const Header = forwardRef<HTMLDivElement>((props, ref) => {
   const { member } = useCurrentMember();
-
+  const router = useRouter();
   return (
     <>
       <div ref={ref} className={classes.header}>
         <Container className={classes.mainSection} size="md">
           <Group justify="space-between">
-            <Flex align="center" gap={8}>
+            <Flex
+              align="center"
+              gap={8}
+              onClick={() => router.push("/communities")}
+            >
               <FcCalendar size={32} />
               <Variable at="xs">
                 <Title order={1}>CommonCircle</Title>

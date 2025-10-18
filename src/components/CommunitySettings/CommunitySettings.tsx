@@ -22,7 +22,12 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FcEmptyTrash, FcHighPriority } from "react-icons/fc";
-import Stripe from "stripe";
+import {
+  createStripeAccount,
+  createStripeAccountLink,
+  verifyStripeAccount as verifyStripeAccountAction,
+  deleteStripeAccount,
+} from "@/lib/actions/stripe-actions";
 
 export function CommunitySettings() {
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
@@ -78,26 +83,30 @@ export function CommunitySettings() {
 
   const connectStripe = async () => {
     setCreatingOnboardingLink(true);
-    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
-      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
-    }
-    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
     try {
       console.log("Creating stripe account");
-      const account = await stripe.accounts.create({
-        country: "GB",
-        type: "standard",
-        default_currency: "GBP",
-      });
-      console.log("Stripe account created", JSON.stringify(account, null, 2));
-      const accountLink = await stripe.accountLinks.create({
-        account: account.id,
-        return_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${communityId}/`,
-        refresh_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${communityId}/`,
-        type: "account_onboarding",
-      });
-      console.log("Account link created", JSON.stringify(accountLink, null, 2));
+      const accountResult = await createStripeAccount();
+      if (!accountResult.success) {
+        throw new Error(accountResult.error);
+      }
+
+      const account = accountResult.account!;
+      // console.log("Stripe account created", JSON.stringify(account, null, 2));
+
+      const accountLinkResult = await createStripeAccountLink(
+        account.id,
+        `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${communityId}/`,
+        `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${communityId}/`
+      );
+
+      if (!accountLinkResult.success) {
+        throw new Error(accountLinkResult.error);
+      }
+
+      const accountLink = accountLinkResult.accountLink!;
+      // console.log("Account link created", JSON.stringify(accountLink, null, 2));
+
       const { error } = await supabase
         .from("communities")
         .update({ stripe_account: account.id })
@@ -111,7 +120,7 @@ export function CommunitySettings() {
         });
       }
 
-      router.push(accountLink.url);
+      router.push(accountLink.url!);
     } catch (error) {
       console.error(
         "An error occurred when calling the Stripe API to create an account",
@@ -130,10 +139,6 @@ export function CommunitySettings() {
 
   const verifyStripeAccount = async () => {
     setVerifyingStripeAccount(true);
-    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
-      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
-    }
-    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
     const { data: community } = await supabase
       .from("communities")
@@ -144,11 +149,24 @@ export function CommunitySettings() {
       "Verifying stripe account",
       paymentSettings.stripeAccountId ?? community?.stripe_account
     );
-    const account = await stripe.accounts.retrieve(
-      paymentSettings.stripeAccountId ?? community?.stripe_account
+
+    const accountId =
+      paymentSettings.stripeAccountId ?? community?.stripe_account;
+    const verifyResult = await verifyStripeAccountAction(accountId);
+
+    if (!verifyResult.success) {
+      throw new Error(verifyResult.error);
+    }
+
+    console.log(
+      "Stripe account verification result",
+      verifyResult.detailsSubmitted
     );
-    console.log("Stripe account retrieved", JSON.stringify(account, null, 2));
-    if (account.charges_enabled) {
+    console.log(
+      "Stripe account retrieved",
+      JSON.stringify(verifyResult, null, 2)
+    );
+    if (verifyResult.chargesEnabled) {
       const { error } = await supabase
         .from("communities")
         .update({ allowPayments: true })
@@ -169,10 +187,6 @@ export function CommunitySettings() {
 
   const disconnectStripeAccount = async () => {
     console.log("Disconnecting stripe account");
-    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
-      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
-    }
-    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
     const { data: community } = await supabase
       .from("communities")
@@ -180,9 +194,15 @@ export function CommunitySettings() {
       .eq("id", communityId)
       .single();
 
-    const deleted = await stripe.accounts.del(
-      paymentSettings.stripeAccountId ?? community?.stripe_account
-    );
+    const accountId =
+      paymentSettings.stripeAccountId ?? community?.stripe_account;
+    const deleteResult = await deleteStripeAccount(accountId);
+
+    if (!deleteResult.success) {
+      throw new Error(deleteResult.error);
+    }
+
+    const deleted = deleteResult.deleted!;
     console.log("Stripe account deleted", JSON.stringify(deleted, null, 2));
     if (!deleted.deleted) {
       notifications.show({

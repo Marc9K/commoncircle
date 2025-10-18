@@ -5,7 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
-import Stripe from "stripe";
+import {
+  createStripeProduct,
+  createStripePrice,
+} from "@/lib/actions/stripe-actions";
 
 export default function NewEventPage() {
   const params = useParams<{ id: string }>();
@@ -60,46 +63,18 @@ export default function NewEventPage() {
 
   const handleSubmit = async (data: EventFormData) => {
     setIsLoading(true);
-    if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
-      throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
-    }
-    const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
 
-    const createProduct = async () => {
-      const product = await stripe.products.create({
-        name: data.title,
-        description:
-          data.description.length && data.description.length > 0
-            ? data.description
-            : data.title + " ticket",
-      });
-      return product.id;
-    };
-
-    const createPrice = async (productId: string) => {
-      const priceData: {
-        currency: string;
-        product: string;
-        custom_unit_amount?: { enabled: boolean };
-        unit_amount?: number;
-      } = {
-        currency: "GBP",
-        product: productId,
-      };
-
-      if (data.price === undefined || data.price === null) {
-        priceData.custom_unit_amount = {
-          enabled: true,
-        };
-      } else if (data.price > 0) {
-        priceData.unit_amount = data.price * 100;
+    let productId = data.stripe_product_id;
+    if (!productId) {
+      const productResult = await createStripeProduct(
+        data.title,
+        data.description
+      );
+      if (!productResult.success) {
+        throw new Error(productResult.error);
       }
-
-      const price = await stripe.prices.create(priceData);
-      return price.id;
-    };
-
-    const productId = data.stripe_product_id ?? (await createProduct());
+      productId = productResult.productId;
+    }
 
     // Set up on event create
     // if (!data.stripe_product_id) {
@@ -109,7 +84,17 @@ export default function NewEventPage() {
     //     .eq("id", data.id);
     // }
 
-    const priceId = data.stripe_price_id ?? (await createPrice(productId));
+    let priceId = data.stripe_price_id;
+    if (!priceId && data.price !== 0) {
+      const priceResult = await createStripePrice(
+        productId!,
+        data.price ?? undefined
+      );
+      if (!priceResult.success) {
+        throw new Error(priceResult.error);
+      }
+      priceId = priceResult.priceId!;
+    }
 
     try {
       const startDate = new Date(data.start).toISOString();

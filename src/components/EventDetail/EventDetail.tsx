@@ -25,7 +25,12 @@ import { Map } from "../Map/Map";
 import { createClient } from "@/lib/supabase/client";
 import { notifications } from "@mantine/notifications";
 import { CommunityDetailData } from "../CommunityDetail/CommunityDetail";
-import Stripe from "stripe";
+import {
+  createStripeProduct,
+  createStripePrice,
+  refundStripePayment,
+  createStripeCheckoutSession,
+} from "@/lib/actions/stripe-actions";
 
 export interface EventDetailData {
   communities: { stripe_account: string };
@@ -491,94 +496,61 @@ export function EventDetail({ event }: { event: EventDetailData }) {
       event.community?.stripe_account &&
       (event.price === undefined || event.price === null || event.price > 0)
     ) {
-      if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
-        throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
-      }
-      const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
-
-      const createProduct = async () => {
-        const product = await stripe.products.create({
-          name: event.title,
-          description:
-            event.description.length && event.description.length > 0
-              ? event.description
-              : event.title + " ticket",
-        });
-        return product.id;
-      };
-
-      const createPrice = async (productId: string) => {
-        const priceData: {
-          currency: string;
-          product: string;
-          custom_unit_amount?: { enabled: boolean };
-          unit_amount?: number;
-        } = {
-          currency: "GBP",
-          product: productId,
-        };
-
-        if (event.price === undefined || event.price === null) {
-          priceData.custom_unit_amount = {
-            enabled: true,
-          };
-        } else if (event.price > 0) {
-          priceData.unit_amount = event.price * 100;
-        }
-
-        const price = await stripe.prices.create(priceData);
-        return price.id;
-      };
-
       console.log("event.stripe_product_id", event.stripe_product_id);
-      const productId = event.stripe_product_id ?? (await createProduct());
-      // Set up on event create
-      if (!event.stripe_product_id) {
+
+      let productId = event.stripe_product_id;
+      if (!productId) {
+        const productResult = await createStripeProduct(
+          event.title,
+          event.description
+        );
+        if (!productResult.success) {
+          throw new Error(productResult.error);
+        }
+        productId = productResult.productId!;
+
+        // Set up on event create
         await supabase
           .from("Events")
           .update({ stripe_product_id: productId })
           .eq("id", event.id);
       }
 
-      const priceId = event.stripe_price_id ?? (await createPrice(productId));
+      let priceId = event.stripe_price_id;
+      if (!priceId) {
+        const priceResult = await createStripePrice(productId, event.price);
+        if (!priceResult.success) {
+          throw new Error(priceResult.error);
+        }
+        priceId = priceResult.priceId!;
+      }
 
       console.log("Success! Here is your starter product id: " + productId);
       console.log("Success! Here is your starter price id: " + priceId);
 
-      const session = await stripe.checkout.sessions.create({
-        client_reference_id: memberId?.toString() ?? "UNKNOWN_MEMBER",
-        customer_email: memberEmail ?? "UNKNOWN_EMAIL",
-        success_url: `${process.env.NEXT_PUBLIC_STRIPE_PURCHASE_SUCCESS_SUPABASE_URL}/events/${event.id}/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${event.communityId}/events/${event.id}`,
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        mode: "payment",
-        payment_method_types: [
-          "card",
-          "link",
-          "pay_by_bank",
-          "revolut_pay",
-          "bacs_debit",
-        ],
-        metadata: {
-          event_id: event.id,
-          member_id: memberId,
-        },
-        payment_intent_data: {
-          on_behalf_of: event.communities.stripe_account,
-        },
-      });
+      const sessionResult = await createStripeCheckoutSession(
+        priceId,
+        memberId?.toString() ?? "UNKNOWN_MEMBER",
+        memberEmail ?? "UNKNOWN_EMAIL",
+        `${process.env.NEXT_PUBLIC_STRIPE_PURCHASE_SUCCESS_SUPABASE_URL}/events/${event.id}/success?session_id={CHECKOUT_SESSION_ID}`,
+        `${process.env.NEXT_PUBLIC_WEB_URL}/communities/${event.communityId}/events/${event.id}`,
+        event.id.toString(),
+        memberId?.toString() ?? "UNKNOWN_MEMBER",
+        event.communities.stripe_account
+      );
 
-      console.log("session", session);
+      if (!sessionResult.success) {
+        throw new Error(sessionResult.error);
+      }
+
+      const session = sessionResult.session!;
+
+      // console.log("session", session);
 
       await addAttendee(session.id);
       if (session.url) {
         console.log("opening session url", session.url);
-        window.open(session.url, "_blank");
+        window.location.href = session.url;
       } else {
         notifications.show({
           title: "Error",
@@ -632,18 +604,16 @@ export function EventDetail({ event }: { event: EventDetailData }) {
     if (attendee && attendee.payment_session_id && attendee.paid) {
       console.log("refunding payment", attendee.paid);
       try {
-        if (!process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY) {
-          throw new Error("NEXT_PUBLIC_STRIPE_SANDBOX_KEY is not set");
-        }
-        const stripe = new Stripe(process.env.NEXT_PUBLIC_STRIPE_SANDBOX_KEY);
-        const session = await stripe.checkout.sessions.retrieve(
+        const refundResult = await refundStripePayment(
           attendee.payment_session_id
         );
-        const refund = await stripe.refunds.create({
-          charge: session.payment_intent as string,
-        });
-        if (refund.status === "succeeded") {
+        if (
+          refundResult.success &&
+          refundResult.refund?.status === "succeeded"
+        ) {
           await deleteAttendee();
+        } else {
+          throw new Error(refundResult.error || "Refund failed");
         }
       } catch (error) {
         console.error(error);

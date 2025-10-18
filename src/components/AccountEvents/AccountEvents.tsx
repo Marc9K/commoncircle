@@ -3,9 +3,11 @@ import { EventCard, EventCardData } from "../EventCard/EventCard";
 import { EmptyState } from "../EmptyState/EmptyState";
 
 export interface UserEvent extends EventCardData {
-  registrationDate: string;
-  registrationStatus: "confirmed" | "waitlist" | "cancelled";
-  communityName: string;
+  attendee_id: number;
+  community: number;
+  id: number;
+  start: string;
+  title: string;
 }
 
 export interface AccountEventsProps {
@@ -31,7 +33,7 @@ function UserEventCard({ event }: { event: UserEvent }) {
           zIndex: 1,
         }}
       ></Group>
-      <Badge
+      {/* <Badge
         variant="light"
         color="blue"
         size="xs"
@@ -43,7 +45,7 @@ function UserEventCard({ event }: { event: UserEvent }) {
         }}
       >
         {event.communityName}
-      </Badge>
+      </Badge> */}
     </Box>
   );
 }
@@ -62,6 +64,8 @@ export function AccountEvents({
   pastEvents = [],
   futureEvents = [],
 }: AccountEventsProps) {
+  console.log(pastEvents);
+  console.log(futureEvents);
   return (
     <Stack gap="lg">
       <Tabs defaultValue="future" variant="outline">

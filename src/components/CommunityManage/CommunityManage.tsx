@@ -64,6 +64,8 @@ export function CommunityManage({
     );
   }
 
+  console.log("community", community);
+
   return (
     <Container size="lg" mt={10}>
       <Stack gap="lg">
@@ -106,7 +108,7 @@ export function CommunityManage({
               pendingMembers={pendingMembers || []}
               existingMembers={existingMembers || []}
               communityId={community?.id}
-              isPublic={community?.public || true}
+              isPublic={community?.public ?? false}
             />
           </Tabs.Panel>
 
