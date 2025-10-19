@@ -12,6 +12,7 @@ import {
 import { FcCheckmark } from "react-icons/fc";
 
 export default function PrivacyPolicy() {
+  const dpoEmail = process.env.NEXT_PUBLIC_DPO_EMAIL;
   return (
     <Container size="md" pt={160} pb={80}>
       <Stack gap="xl">
@@ -22,12 +23,13 @@ export default function PrivacyPolicy() {
             personal information.
           </Text>
         </Stack>
-
-        <Stack gap="md">
-          <Title order={2}>Contact details</Title>
-          <Text fw={500}>Email</Text>
-          <Text>graham.mcmullan@northcoders.com</Text>
-        </Stack>
+        {dpoEmail && (
+          <Stack gap="md">
+            <Title order={2}>Contact details</Title>
+            <Text fw={500}>Email</Text>
+            <Text>{dpoEmail}</Text>
+          </Stack>
+        )}
 
         <Divider />
 
