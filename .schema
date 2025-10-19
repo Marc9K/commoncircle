@@ -65,5 +65,6 @@ CREATE TABLE public.communities (
   picture text,
   established date,
   stripe_account text UNIQUE,
+  allowPayments boolean NOT NULL DEFAULT false,
   CONSTRAINT communities_pkey PRIMARY KEY (id)
 );

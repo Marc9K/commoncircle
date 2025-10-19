@@ -32,6 +32,8 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/postcss": "^4.1.13",
+    "@telegram-auth/react": "^1.0.4",
+    "@telegram-auth/server": "^1.0.4",
     "@tiptap/extension-link": "^3.4.2",
     "@tiptap/pm": "^3.4.2",
     "@tiptap/react": "^3.4.2",

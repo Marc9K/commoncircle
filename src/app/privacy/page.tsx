@@ -12,8 +12,9 @@ import {
 import { FcCheckmark } from "react-icons/fc";
 
 export default function PrivacyPolicy() {
+  const dpoEmail = process.env.NEXT_PUBLIC_DPO_EMAIL;
   return (
-    <Container size="md" pt={160} pb={80}>
+    <Container size="md" pt={10} pb={80}>
       <Stack gap="xl">
         <Stack gap="lg">
           <Title order={1}>Common Circle customer privacy notice</Title>
@@ -26,7 +27,7 @@ export default function PrivacyPolicy() {
         <Stack gap="md">
           <Title order={2}>Contact details</Title>
           <Text fw={500}>Email</Text>
-          <Text>graham.mcmullan@northcoders.com</Text>
+          <Anchor href={`mailto:${dpoEmail}`}>{dpoEmail}</Anchor>
         </Stack>
 
         <Divider />

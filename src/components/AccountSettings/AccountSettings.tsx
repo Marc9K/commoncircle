@@ -10,12 +10,15 @@ import {
   Alert,
   Modal,
   TextInput,
+  Checkbox,
 } from "@mantine/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { FcDownload } from "react-icons/fc";
 import { notifications } from "@mantine/notifications";
+import TelegramButton from "../TelegramButton/TelegramButton";
+import { Member } from "@/types/member";
 
 export interface AccountSettingsProps {
   user: User;
@@ -27,6 +30,8 @@ export function AccountSettings({ user }: AccountSettingsProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
+  const [member, setMember] = useState<Member | null>(null);
 
   const supabase = createClient();
 
@@ -120,6 +125,18 @@ export function AccountSettings({ user }: AccountSettingsProps) {
     }
   };
 
+  useEffect(() => {
+    const fetchMember = async () => {
+      const { data: member } = await supabase
+        .from("Members")
+        .select("*")
+        .eq("uid", user.id)
+        .single();
+      setMember(member);
+    };
+    fetchMember();
+  }, [user.id]);
+
   return (
     <Stack gap="lg">
       <Card withBorder padding="lg" radius="md">
@@ -149,6 +166,18 @@ export function AccountSettings({ user }: AccountSettingsProps) {
               </Text>
             </div>
           </Group>
+          {member?.telegram_username && (
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" fw={500}>
+                  Telegram
+                </Text>
+                <Text size="sm" c="dimmed">
+                  {member.telegram_username}
+                </Text>
+              </div>
+            </Group>
+          )}
         </Stack>
       </Card>
 
@@ -176,6 +205,16 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             >
               Download My Data
             </Button>
+            <Stack>
+              <TelegramButton consentGiven={consentGiven} />
+              <Checkbox
+                label="I want to be communicated via Telegram"
+                checked={consentGiven}
+                onChange={(e) => {
+                  setConsentGiven(e.target.checked);
+                }}
+              />
+            </Stack>
           </Group>
         </Stack>
       </Card>

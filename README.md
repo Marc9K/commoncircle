@@ -37,7 +37,7 @@ A community platform. The application allows users to connect with communities, 
    - Create a new project at [supabase.com](https://supabase.com)
    - Add Google as provider in Authorisation -> Sign In / Providers
    - Add your website URL to Authorisation -> URL Configuration
-   - Set up scema according to `.shema`
+   - Set up scema according to [`.shema`](/.schema)
 
 5. **Start the development server**
 
@@ -73,7 +73,7 @@ A community platform. The application allows users to connect with communities, 
 
 2. **Set environment variables in Vercel dashboard:**
 
-   - Same as in `.env.example`
+   - Same as in [`.env.example`](/.env.example)
 
 3. **Update Supabase configuration:**
 

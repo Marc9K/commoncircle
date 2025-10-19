@@ -5,4 +5,6 @@ export interface Member {
   email: string | null
   avatar_url: string | null
   uid: string
+  telegram_id?: string
+  telegram_username?: string
 }
