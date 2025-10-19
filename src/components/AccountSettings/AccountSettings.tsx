@@ -19,6 +19,7 @@ import { FcDownload } from "react-icons/fc";
 import { notifications } from "@mantine/notifications";
 import TelegramButton from "../TelegramButton/TelegramButton";
 import { Member } from "@/types/member";
+import { Container } from "lucide-react";
 
 export interface AccountSettingsProps {
   user: User;
@@ -206,7 +207,9 @@ export function AccountSettings({ user }: AccountSettingsProps) {
               Download My Data
             </Button>
             <Stack>
-              <TelegramButton consentGiven={consentGiven} />
+              <Container height={100} width={100}>
+                <TelegramButton consentGiven={consentGiven} />
+              </Container>
               <Checkbox
                 label="I want to be communicated via Telegram"
                 checked={consentGiven}

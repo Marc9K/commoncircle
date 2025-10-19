@@ -16,10 +16,10 @@ export default function TelegramButton({
     <LoginButton
       botUsername={botUsername}
       requestAccess={consentGiven ? "write" : null}
-      onAuthCallback={async (data) => {
+      onAuthCallback={(data) => {
         console.log(data);
         const authData = new Map(Object.entries(data));
-        await linkTelegramAccount(authData);
+        linkTelegramAccount(authData);
       }}
     />
   );
